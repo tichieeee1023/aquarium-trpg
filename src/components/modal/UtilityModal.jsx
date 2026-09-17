@@ -1,0 +1,46 @@
+import { useEffect, useRef } from 'react';
+import ModalLayer from './ModalLayer.jsx';
+
+export default function UtilityModal({ kind, settings, updateSettings, onClose }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const previousFocus = document.activeElement;
+    ref.current.querySelector('button')?.focus();
+    const handleKey = (event) => {
+      if (event.key === 'Escape') { event.preventDefault(); event.stopImmediatePropagation(); onClose(); }
+      if (event.key === 'Tab') {
+        const elements = [...ref.current.querySelectorAll('button, input, a[href]')];
+        const first = elements[0], last = elements.at(-1);
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+    };
+    window.addEventListener('keydown', handleKey, true);
+    return () => { window.removeEventListener('keydown', handleKey, true); previousFocus?.focus(); };
+  }, [onClose]);
+  return (
+    <ModalLayer>
+      <div className="utility-backdrop" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+        <section ref={ref} className="utility-dialog" role="dialog" aria-modal="true" aria-labelledby="utility-title">
+          <div className="utility-heading"><h2 id="utility-title">{kind === 'settings' ? '설정' : '처음 플레이하는 분께'}</h2><button onClick={onClose} aria-label="닫기">×</button></div>
+          {kind === 'settings' ? <>
+            <fieldset><legend>글씨 크기</legend><div className="setting-options">
+              {[['normal', '기본'], ['large', '크게']].map(([value, label]) => <button key={value} aria-pressed={settings.textSize === value} onClick={() => updateSettings({ textSize: value })}>{label}</button>)}
+            </div><p>UI와 이야기 글씨를 함께 키웁니다.</p></fieldset>
+            <label className="setting-checkbox"><input type="checkbox" checked={settings.disableEffects} onChange={(event) => updateSettings({ disableEffects: event.target.checked })} /><span>번쩍이는 이펙트 제거</span></label>
+            <p>암전 시 화면 반전, 점멸, 주사위 회전과 움직이는 캔버스 효과를 끕니다. 주사위 결과와 게임 진행은 그대로 유지됩니다.</p>
+            <p className="setting-note">설정은 이 브라우저에 자동 저장됩니다.</p>
+          </> : <div className="help-content">
+            <h3>1. 캐릭터를 선택하세요</h3><p>캐릭터마다 능력치와 시작 도구가 다릅니다. 컨디션 주사위를 굴리면 탐사가 시작됩니다.</p>
+            <h3>2. AP를 확인하고 조사하세요</h3><p>조사할 장소를 선택하면 행동력(AP)을 사용합니다. 이미 조사한 장소는 다시 선택할 수 없습니다.</p>
+            <h3>3. D20 주사위로 판정합니다</h3><p>주사위 눈금과 능력치 보정의 합이 목표 난이도(DC)에 도달하면 성공합니다. 20은 대성공, 1은 대실패입니다.</p>
+            <h3>4. 도구와 상태를 살펴보세요</h3><p>획득한 도구는 소지품에 자동 추가됩니다. HP는 체력, SAN은 정신력입니다. 배터리와 남은 턴도 확인하세요.</p>
+            <h3>5. 이야기를 읽고 다음으로 진행하세요</h3><p>텍스트 출력 중에는 &gt;다음이나 모달 바깥을 누르면 문장이 완성됩니다. 한 번 더 누르면 다음 행동으로 진행합니다. Esc도 사용할 수 있습니다.</p>
+            <h3>작은 화면에서는</h3><p>장면 설명과 캐릭터·진행 기록은 접혀 있습니다. 각 제목을 눌러 펼칠 수 있습니다. 글씨가 작거나 이펙트가 불편하면 설정을 열어 조정하세요.</p>
+          </div>}
+          <button className="utility-done" onClick={onClose}>확인</button>
+        </section>
+      </div>
+    </ModalLayer>
+  );
+}
