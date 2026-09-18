@@ -1333,8 +1333,17 @@ button:disabled { cursor: not-allowed; }
 }
 
 .secret-return-home:hover {
+  border-color: #fff0a7 !important;
+  background:
+    linear-gradient(180deg, #594414, #33270e) !important;
+}
+
 @media (max-width: 640px) {
   .secret-report-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* =========================================================
    CREDITS — SYSTEM NOTES
    ========================================================= */
