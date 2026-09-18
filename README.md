@@ -12,6 +12,8 @@
 플레이어는 직장인 캐릭터의 성향을 선택하고, D20 주사위로 그날의 컨디션을 결정한 뒤  
 객차 → 터널 → 승강장 → 환승 상가 → 환기탑으로 이어지는 스테이지를 탐사합니다.
 
+게임 시작 후에는 `나는 00시 37분 막차에 올랐다`로 시작하는 2장면 프롤로그가 재생됩니다. 열차가 역으로 천천히 지나가는 장면 위에서 텍스트를 즉시 완성하거나 장면을 넘긴 뒤 돌발 퀘스트 형태의 캐릭터 생성으로 진입합니다. `인트로 건너뛰기`를 누르거나 한 번 끝까지 본 뒤에는 같은 브라우저에서 프롤로그를 생략합니다.
+
 각 행동은 **행동력(AP), HP, SAN, 배터리, 소지품, 조사 기록, 시나리오 플래그**에 영향을 주며,  
 이전 선택과 획득한 도구에 따라 이후 선택지와 최종 엔딩이 달라집니다.
 
@@ -32,6 +34,7 @@
 - 한방주의자
 
 각 성향은 서로 다른 주 능력치와 시작 아이템을 가지며, 이후 D20 판정에 영향을 줍니다.
+직무를 누르면 능력치·시작 소지품·남녀 포트레이트를 확인하는 프리뷰가 열립니다. 탑승을 확정한 뒤 컨디션을 굴립니다.
 
 ---
 
@@ -72,6 +75,7 @@ ENDING
 ```
 
 각 스테이지에서는 제한된 행동력 안에서 조사 대상을 선택해야 합니다.
+Stage 1~4는 각각 6곳 중 3곳을 조사하며, 승강장 경로는 3회 조사 후 고릅니다. 최종전은 배기팬 → 촉수 견제 → 맨홀의 3단계를 3턴 안에 돌파하는 구조입니다.
 
 무엇을 조사했는지, 어떤 도구를 얻었는지, 특정 위화감을 발견했는지에 따라  
 다음 스테이지의 생존 가능성과 선택지가 달라집니다.
@@ -133,6 +137,7 @@ UI 컴포넌트에서 시나리오 처리 로직이 지나치게 커지지 않�
 플레이 결과에 따라 서로 다른 엔딩으로 이어집니다.
 
 - TRUE END
+- GOOD END
 - NORMAL END
 - BAD END 1
 - BAD END 2
@@ -142,6 +147,10 @@ UI 컴포넌트에서 시나리오 처리 로직이 지나치게 커지지 않�
 플레이 중의 생존 상태, 조사 결과, 도구 획득 여부 등의 영향을 받습니다.
 
 각 엔딩에는 별도의 엔딩 카드 이미지와 결과 화면이 제공됩니다.
+엔딩 도감은 완료한 카드만 공개하고 `subway_0037_endings`에 수집 기록을 저장합니다. 6종을 모으면 **04:44 AM — 폐쇄회로 밖의 기록** 후일담이 열립니다. 인트로와 엔딩에서 도감을 열 수 있습니다.
+첫 엔딩을 보기 전에는 도감이 잠겨 있습니다. 개발 서버의 메인 화면에서 `Ctrl+Shift+F10`을 누르면 도감을 6/6으로 채우고 열 수 있습니다. 프로덕션에서는 개발 키를 비활성화합니다.
+
+SAN 최대치는 15입니다. 탈출 성공 시 TRUE는 HP 12/SAN 8 이상, GOOD은 HP 8/SAN 5 이상을 모두 만족해야 하며 나머지 생존 탈출은 NORMAL입니다. HP 또는 SAN이 0이면 생존 엔딩을 받을 수 없습니다. 자세한 규칙과 스포일러 포함 공략은 [QA 매뉴얼](docs/expansion-qa.md)을 참고하세요.
 
 ---
 
@@ -242,6 +251,8 @@ src/
 ├── data/
 │   ├── assetDB.js
 │   ├── conditionDB.js
+│   ├── endingDB.js
+│   ├── explorationDB.js
 │   ├── itemDB.js
 │   ├── scenarioDB.js
 │   └── surveyDB.js
@@ -249,12 +260,14 @@ src/
 ├── hooks/
 │   ├── useAudioSynth.js
 │   ├── useGameEngine.js
+│   ├── useEndingCollection.js
 │   ├── useGameSettings.js
 │   └── useTypewriter.js
 │
 ├── state/
 │   ├── stages/
 │   │   ├── stage0Handlers.js
+│   │   ├── explorationHandlers.js
 │   │   ├── stage1Handlers.js
 │   │   ├── stage2Handlers.js
 │   │   ├── stage3Handlers.js
@@ -262,11 +275,14 @@ src/
 │   │   └── stage5Handlers.js
 │   ├── gameActions.js
 │   ├── gameReducer.js
+│   ├── gameRules.js
+│   ├── inventoryHandlers.js
 │   ├── initialGameState.js
 │   └── stageHandlers.js
 │
 └── utils/
     ├── diceEngine.js
+    ├── endingCollection.js
     └── storyFlow.js
 ```
 
@@ -311,9 +327,11 @@ src/
 - 핵심 도구 획득 여부에 따른 Stage 1 분기
 - BAD END 1 / 2 / 3 진입 조건
 - 전체 스테이지 정상 진행
-- TRUE / NORMAL END 조건
+- TRUE / GOOD / NORMAL END 경계값
+- 0턴 행동과 마지막 턴 탈출, 도구 미보유/소모/절연 보호
+- HP/SAN 붕괴와 소지품 회복 상한, 잘못된 엔딩 저장값
 
-총 **11개의 게임 로직 테스트**가 포함되어 있습니다.
+총 **17개의 게임 로직 테스트**가 포함되어 있습니다.
 
 ```bash
 npm test

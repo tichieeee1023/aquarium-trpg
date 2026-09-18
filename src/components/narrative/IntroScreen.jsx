@@ -1,6 +1,6 @@
 import { SCENE_ASSETS } from '../../data/assetDB.js';
 
-export default function IntroScreen({ onStart, onSettings, onHelp }) {
+export default function IntroScreen({ onStart, onSettings, onHelp, onCollection, collectionUnlocked }) {
   return (
     <main className="intro-screen">
       <img className="intro-image" src={SCENE_ASSETS.INTRO.src} alt={SCENE_ASSETS.INTRO.alt} />
@@ -14,8 +14,9 @@ export default function IntroScreen({ onStart, onSettings, onHelp }) {
           <button onClick={onStart} className="bg-amber-300 text-neutral-950 font-bold cursor-pointer">게임 시작</button>
           <button onClick={onSettings} className="bg-neutral-900 text-neutral-100 cursor-pointer">설정</button>
           <button onClick={onHelp} className="bg-neutral-900 text-neutral-100 cursor-pointer">도움말</button>
+          <button onClick={onCollection} disabled={!collectionUnlocked} title={collectionUnlocked ? '엔딩 도감' : '엔딩을 하나 이상 보면 열립니다'} className="bg-neutral-900 text-neutral-100 cursor-pointer">{collectionUnlocked ? '엔딩 도감' : '엔딩 도감 · 잠김'}</button>
         </div>
-        <div className="intro-hint">D20 주사위 · 도구 수집 · 다섯 개의 결말</div>
+        <div className="intro-hint">D20 주사위 · 도구 수집 · 여섯 개의 결말</div>
       </section>
     </main>
   );

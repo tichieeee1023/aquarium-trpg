@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import ModalLayer from './ModalLayer.jsx';
 import DiceCanvas from './DiceCanvas.jsx';
 
-export default function DiceModal({ diceModal, player, rollD20Check, confirmDiceResult, dismissDice, disableEffects }) {
+export default function DiceModal({ diceModal, player, rollD20Check, confirmDiceResult, dismissDice, disableEffects, skipDiceAnimation }) {
   const isCondition = diceModal.kind === 'CONDITION';
   useEffect(() => {
     if (!diceModal.isOpen) return;
@@ -79,7 +79,7 @@ diceModal.isOpen && (
             {!diceModal.result ? (
               <button
                 disabled={diceModal.rolling}
-                onClick={rollD20Check}
+                onClick={() => rollD20Check(skipDiceAnimation)}
                 className="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-neutral-950 font-black text-sm shadow-lg active:scale-95 transition cursor-pointer disabled:opacity-50"
               >
                 {diceModal.rolling ? '주사위 회전 중...' : '운명의 D20 주사위 굴리기'}

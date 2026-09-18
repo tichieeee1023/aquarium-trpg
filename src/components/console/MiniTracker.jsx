@@ -11,7 +11,7 @@ export default function MiniTracker({ stage }) {
               {[
                 { id: 'STAGE_1_CAR6', name: 'Stage 1 : 6호차 객차' },
                 { id: 'STAGE_2_TUNNEL', name: 'Stage 2 : 선로 터널 300m' },
-                { id: 'STAGE_3_PLATFORM', name: 'Stage 3 : 의태 승강장' },
+                { id: 'STAGE_3_PLATFORM', name: 'Stage 3 : 신도림 환승역' },
                 { id: 'STAGE_4_MALL', name: 'Stage 4 : 환승 상가' },
                 { id: 'STAGE_5_VENT', name: 'Stage 5 : 환기탑 탈출' },
               ].map((node) => {

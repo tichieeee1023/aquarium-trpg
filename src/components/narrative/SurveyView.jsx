@@ -1,17 +1,20 @@
 import { ARCHETYPES } from '../../data/surveyDB.js';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import DialogFrame from '../modal/DialogFrame.jsx';
 
 export default function SurveyView({ stage, handleSelectArchetype }) {
   const [gender, setGender] = useState('M');
+  const [preview, setPreview] = useState(null);
+  const closePreview = useCallback(() => setPreview(null), []);
   return (
 stage === 'SURVEY' && (
           <div className="space-y-4 my-auto">
             <div className="border-l-4 border-amber-500 pl-3 py-1">
               <div className="text-[10px] font-mono text-amber-400 uppercase tracking-widest">[ 돌발 퀘스트 : 캐릭터 생성 ]</div>
-              <h2 className="text-lg font-bold text-neutral-100">당신은 어떤 삶을 갉아먹으며 버텨온 직장인입니까?</h2>
+              <h2 className="text-lg font-bold text-neutral-100">막차에 오른 당신은 누구입니까?</h2>
             </div>
             <p className="text-xs text-neutral-400 leading-relaxed">
-              자정 00시 37분, 지옥철 막차 6호차에 몸을 실었습니다. 평소의 야근 습관과 생존 방식을 선택하십시오.
+              직무에 따라 능력치와 시작 소지품이 달라집니다. 이 밤을 함께 버틸 인물을 선택하십시오.
             </p>
 
             <div className="flex gap-2" role="group" aria-label="캐릭터 성별">
@@ -26,7 +29,7 @@ stage === 'SURVEY' && (
               {ARCHETYPES.map((arch) => (
                 <button
                   key={arch.id}
-                  onClick={() => handleSelectArchetype(arch, gender)}
+                  onClick={() => setPreview({ arch, gender })}
                   className="w-full p-2 rounded-xl text-left bg-[#131826] hover:bg-[#1b2236] border border-[#232d44] hover:border-amber-400 transition-all flex flex-col gap-1 cursor-pointer group"
                 >
                   <div className="flex items-center gap-3">
@@ -40,6 +43,11 @@ stage === 'SURVEY' && (
                 </button>
               ))}
             </div>
+            {preview && <DialogFrame title="탑승 전 사원증 확인" onClose={closePreview}>
+              <div className="character-preview"><img src={preview.arch.portraits[preview.gender]} alt={preview.arch.title} /><div><h3>{preview.arch.title}</h3><p>{preview.arch.quote}</p><dl>{Object.entries(preview.arch.stats).map(([stat, value]) => <div key={stat}><dt>{stat}</dt><dd>{value}</dd></div>)}</dl></div></div>
+              <h3>시작 소지품</h3><ul className="preview-items">{preview.arch.items.map((item) => <li key={item.id} className="preview-item-tag">{item.name}</li>)}</ul>
+              <button className="utility-done" onClick={() => { const selected = preview; closePreview(); handleSelectArchetype(selected.arch, selected.gender); }}>이 사원증으로 탑승</button><button className="utility-done" onClick={closePreview}>다시 선택</button>
+            </DialogFrame>}
           </div>
         )
   );

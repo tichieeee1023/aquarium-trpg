@@ -5,6 +5,7 @@ import { createStage2Handlers } from './stages/stage2Handlers.js';
 import { createStage3Handlers } from './stages/stage3Handlers.js';
 import { createStage4Handlers } from './stages/stage4Handlers.js';
 import { createStage5Handlers } from './stages/stage5Handlers.js';
+import { createInventoryHandlers } from './inventoryHandlers.js';
 
 export function createStageHandlers(context) {
   return {
@@ -14,6 +15,7 @@ export function createStageHandlers(context) {
     ...createStage3Handlers(context),
     ...createStage4Handlers(context),
     ...createStage5Handlers(context),
+    ...createInventoryHandlers(context),
     handleRestart() {
       context.sfx.playClick();
       context.dispatch({ type: GAME_ACTIONS.RESET });

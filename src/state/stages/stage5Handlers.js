@@ -1,191 +1,79 @@
-import { SCENARIO_TEXT } from '../../data/scenarioDB.js';
+import { getEscapeEnding } from '../../data/endingDB.js';
+import { applyDamage, canAct, checkCollapse, finishGame, hasItem } from '../gameRules.js';
 
-export function createStage5Handlers({ player, turnLimit, flags, setStage, setPlayer, setTurnLimit, setActiveModalText, setFlags, setEndingData, sfx, addLog, openDiceCheck }) {
-// ===========================================================================
-// STAGE 5 : 배전실 & 수직 환기 갱도 핸들러 (타임어택 3턴)
-// ===========================================================================
-const handleStage5Action = (approachType) => {
-if (turnLimit <= 0) return;
-sfx.playClick();
-
-if (approachType === 'TOOL_WRENCH') {
-  // 스패너 프리패스
-  setFlags((f) => ({ ...f, fanStopped: true }));
-  addLog("스패너 사용: 메인 볼트를 풀어 환풍기 무소음 정지 완료! (턴 소모 없음)");
-  setActiveModalText({
-    title: SCENARIO_TEXT.text_101,
-    body: SCENARIO_TEXT.text_102,
-    tag: SCENARIO_TEXT.text_103,
-    onClose: () => setActiveModalText(null)
-  });
-  return;
-}
-
-const nextTurns = turnLimit - 1;
-setTurnLimit(nextTurns);
-
-switch (approachType) {
-  case 'INT':
-    openDiceCheck(
-      "고압 배전반 퓨즈 차단기 단선",
-      "INT",
-      flags.knows_fan_circuit ? 9 : 12,
-      () => {
-        setFlags((f) => ({ ...f, fanStopped: true }));
-        addLog("지능 판정 성공: 배기팬 회로 차단 성공. 날개 정지.");
-        setActiveModalText({
-          title: SCENARIO_TEXT.text_104,
-          body: SCENARIO_TEXT.text_105,
-          tag: SCENARIO_TEXT.text_106,
-          onClose: () => setActiveModalText(null)
-        });
-      },
-      () => {
-        setPlayer((p) => ({ ...p, hp: Math.max(0, p.hp - 5) }));
-        sfx.playDanger();
-        addLog("지능 판정 실패: 누전 차단기 폭발 감전 (HP -5, 턴 1 소모)");
-        setActiveModalText({
-          title: SCENARIO_TEXT.text_107,
-          body: SCENARIO_TEXT.text_108,
-          tag: SCENARIO_TEXT.text_109,
-          onClose: () => checkVentFailure(nextTurns)
-        });
-      }
-    );
-    break;
-
-  case 'STR':
-    openDiceCheck(
-      "쇠지렛대(빠루)로 회전 기어 축 강제 파괴",
-      "STR",
-      13,
-      () => {
-        setFlags((f) => ({ ...f, fanStopped: true }));
-        addLog("완력 판정 성공: 기어 축 파괴로 날개 정지 (사용 도구 파손).");
-        setActiveModalText({
-          title: SCENARIO_TEXT.text_110,
-          body: SCENARIO_TEXT.text_111,
-          tag: SCENARIO_TEXT.text_112,
-          onClose: () => setActiveModalText(null)
-        });
-      },
-      () => {
-        setPlayer((p) => ({ ...p, hp: Math.max(0, p.hp - 4) }));
-        sfx.playDanger();
-        addLog("완력 판정 실패: 반동으로 튕겨 나가며 어깨 탈구 (HP -4, 턴 1 소모)");
-        setActiveModalText({
-          title: SCENARIO_TEXT.text_113,
-          body: SCENARIO_TEXT.text_114,
-          tag: SCENARIO_TEXT.text_115,
-          onClose: () => checkVentFailure(nextTurns)
-        });
-      }
-    );
-    break;
-
-  case 'DEX':
-    openDiceCheck(
-      "회전 날개 틈새로 칼날 타이밍 도약",
-      "DEX",
-      14,
-      () => {
-        setFlags((f) => ({ ...f, fanStopped: true }));
-        addLog("기교 판정 성공: 찰나의 틈새로 몸을 던져 사다리 착지!");
-        setActiveModalText({
-          title: SCENARIO_TEXT.text_116,
-          body: SCENARIO_TEXT.text_117,
-          tag: SCENARIO_TEXT.text_118,
-          onClose: () => setActiveModalText(null)
-        });
-      },
-      () => {
-        setPlayer((p) => ({ ...p, hp: Math.max(0, p.hp - 7) }));
-        sfx.playDanger();
-        addLog("기교 판정 실패: 회전 날개 끝에 스쳐 깊은 열상 (HP -7)");
-        setActiveModalText({
-          title: SCENARIO_TEXT.text_119,
-          body: SCENARIO_TEXT.text_120,
-          tag: SCENARIO_TEXT.text_121,
-          onClose: () => checkVentFailure(nextTurns)
-        });
-      }
-    );
-    break;
-
-  default:
-    break;
-}
-
-
-};
-
-const checkVentFailure = (turns) => {
-if (turns <= 0 && !flags.fanStopped) {
-triggerBadEnd3();
-}
-};
-
-// 최종 관문 : 맨홀 뚜껑 개방
-const handlePushManhole = () => {
-openDiceCheck(
-"빗물 쏟아지는 주철 맨홀 뚜껑 강제 개방",
-"STR",
-11,
-() => {
-sfx.playSuccess();
-// 최종 엔딩 분기
-if (player.hp >= 12 && player.san > 10) {
-// TRUE END
-setEndingData({
-type: 'TRUE',
-cardId: 'TRUE',
-title: SCENARIO_TEXT.text_122,
-desc: SCENARIO_TEXT.text_123
-});
-} else {
-// NORMAL END
-setEndingData({
-type: 'NORMAL',
-cardId: 'NORMAL',
-title: SCENARIO_TEXT.text_124,
-desc: SCENARIO_TEXT.text_125
-});
-}
-setStage('ENDING');
-},
-() => {
-// 실패 시
-setPlayer((p) => ({ ...p, hp: Math.max(0, p.hp - 4) }));
-setTurnLimit((t) => t - 1);
-sfx.playDanger();
-addLog("맨홀 개방 실패: 뚜껑 위에 장애물이 얹혀 있어 꿈쩍 않음 (HP -4)");
-setActiveModalText({
-title: SCENARIO_TEXT.text_126,
-body: SCENARIO_TEXT.text_127,
-tag: SCENARIO_TEXT.text_128,
-onClose: () => {
-if (turnLimit <= 1) {
-triggerBadEnd3();
-} else {
-setActiveModalText(null);
-}
-}
-});
-}
-);
-};
-
-const triggerBadEnd3 = () => {
-sfx.playDanger();
-setEndingData({
-type: 'BAD',
-cardId: 'BAD_3',
-title: SCENARIO_TEXT.text_129,
-desc: SCENARIO_TEXT.text_130
-});
-setStage('ENDING');
-};
-
-
-return { handleStage5Action, handlePushManhole };
+export function createStage5Handlers(context) {
+  const { getState, setPlayer, setTurnLimit, setVentPhase, setFlags, setActiveModalText, openDiceCheck, addLog } = context;
+  const ready = (phase) => {
+    const state = getState();
+    return state.stage === 'STAGE_5_VENT' && state.ventPhase === phase && state.turnLimit > 0 && canAct(state);
+  };
+  const afterAction = () => {
+    if (!checkCollapse(context) && getState().turnLimit <= 0) finishGame(context, 'BAD_3');
+  };
+  const commit = ({ phase, cost = 1, hp = 0, san = 0, title, body, consume, flags = {} }) => {
+    setTurnLimit((turns) => Math.max(0, turns - cost));
+    setVentPhase(phase);
+    setFlags((previous) => ({ ...previous, ...flags }));
+    setPlayer((player) => {
+      const updated = applyDamage(player, hp, san);
+      return consume ? { ...updated, inventory: updated.inventory.filter((item) => item.id !== consume) } : updated;
+    });
+    addLog(`${title} · ${cost}턴 소모`);
+    setActiveModalText({ title, body: `${body}\n\n${cost === 0 ? '턴 소모 없음.' : `${cost}턴 소모.`}`, onClose: afterAction });
+  };
+  const handleStage5Action = (approach) => {
+    if (!ready(1)) return;
+    const state = getState();
+    if (approach === 'TOOL_WRENCH') {
+      const tool = ['wrench', 'multitool', 'acid_vial'].find((id) => hasItem(state, id));
+      if (!tool) return;
+      commit({ phase: 2, consume: tool === 'acid_vial' ? tool : undefined, hp: tool === 'acid_vial' && !hasItem(state, 'rubber_gloves') ? 2 : 0,
+        flags: { fanStopped: true }, title: '도구 정공법 — 배기팬 정지',
+        body: tool === 'acid_vial' ? '채취병의 산성액을 베어링에 부었다. 금속이 녹으며 배기팬이 멈췄다. 채취병은 소모되었다.' : tool === 'multitool' ? '멀티툴로 릴레이 배선을 분리했다. 배기팬이 서서히 멎는다.' : '비상 스패너로 메인 볼트를 풀어 배기팬을 무소음 차단했다.' });
+      return;
+    }
+    if (!['INT', 'STR', 'DEX'].includes(approach)) return;
+    if (approach === 'STR' && !hasItem(state, 'crowbar', 'laptop_bag', 'tumbler', 'extinguisher')) return;
+    const dc = approach === 'INT' ? (state.flags.knows_fan_circuit ? 9 : 12) : approach === 'STR' ? 11 : 14;
+    openDiceCheck(`${approach} · 배기팬 ${approach === 'INT' ? '회로 차단' : approach === 'STR' ? '회전축 파괴' : '날개 틈 도약'}`, approach, dc,
+      () => commit({ phase: 2, flags: { fanStopped: true }, title: '배기팬 구간 돌파', body: '회전 날개를 통과했다. 사다리 아래에서 촉수가 발목을 더듬는다.' }),
+      () => commit({ phase: 1, hp: approach === 'DEX' ? 8 : approach === 'STR' ? 6 : hasItem(getState(), 'rubber_gloves') ? 2 : 5,
+        title: '배기팬 돌파 실패', body: approach === 'INT' && hasItem(getState(), 'rubber_gloves') ? '누전이 튀었지만 절연장갑이 충격을 막았다. HP -2.' : '날개와 파편에 부상을 입었다. 도구와 다른 접근법을 확인해야 한다.' }));
+  };
+  const handleVentDefense = (approach) => {
+    if (!ready(2)) return;
+    const state = getState();
+    if (approach === 'LANTERN' || approach === 'EXTINGUISHER') {
+      const id = approach === 'LANTERN' ? 'lantern' : 'extinguisher';
+      if (!hasItem(state, id)) return;
+      commit({ phase: 3, cost: 0, flags: { creatureBlocked: true }, title: '촉수 견제 성공',
+        body: approach === 'LANTERN' ? '방수 랜턴의 고출력 섬광에 괴물이 움츠러든다. 시간을 잃지 않고 사다리를 올랐다.' : '소화기 분말이 갱도를 채우며 촉수를 밀어냈다. 빈 소화기 통은 맨홀 타격에 사용할 수 있다.' });
+    } else if (approach === 'CUTTER') {
+      if (!hasItem(state, 'cutter')) return;
+      openDiceCheck('커터칼 · 발목을 감은 촉수 절단', 'DEX', 10,
+        () => commit({ phase: 3, flags: { creatureBlocked: true }, title: '촉수 절단 성공', body: '칼날로 촉수를 베어내고 사다리를 올랐다.' }),
+        () => commit({ phase: 3, hp: 6, san: 3, title: '촉수 절단 실패', body: '촉수의 타격을 허용하며 간신히 기어올랐다. HP -6, SAN -3.' }));
+    } else if (approach === 'NONE') {
+      commit({ phase: 3, hp: 7, san: 4, title: '맨몸으로 사다리 돌파', body: '촉수를 떼어내며 사다리를 올랐다. HP -7, SAN -4.' });
+    }
+  };
+  const handleVentEscape = (approach) => {
+    if (!ready(3) || !['COMBO', 'STR'].includes(approach)) return;
+    const state = getState();
+    const crowbar = hasItem(state, 'crowbar');
+    const striker = hasItem(state, 'wrench', 'tumbler', 'extinguisher');
+    const escape = () => {
+      setTurnLimit((turns) => Math.max(0, turns - 1));
+      finishGame(context, getEscapeEnding(getState().player));
+    };
+    if (approach === 'COMBO') {
+      if (!crowbar || !striker) return;
+      addLog('빠루 + 타격도구 지렛대 연계: 맨홀 확정 개방.');
+      escape();
+    } else {
+      openDiceCheck('주철 맨홀 뚜껑 최종 개방', 'STR', crowbar ? 9 : 14, escape,
+        () => commit({ phase: 3, hp: 3, title: '맨홀 개방 실패', body: '녹슨 뚜껑이 꿈쩍하지 않는다. 어깨에 통증이 번진다. HP -3.' }));
+    }
+  };
+  return { handleStage5Action, handleVentDefense, handleVentEscape, handlePushManhole: () => handleVentEscape('STR') };
 }

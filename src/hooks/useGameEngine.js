@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useReducer, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react';
 import { gameReducer } from '../state/gameReducer.js';
 import { GAME_ACTIONS } from '../state/gameActions.js';
 import { createInitialGameState } from '../state/initialGameState.js';
@@ -17,10 +17,14 @@ const resolvedStories = useRef(new WeakSet());
 const diceBusy = useRef(false);
 const advanceAfterRoll = useRef(false);
 const resolvedDiceResults = useRef(new WeakSet());
+const rollTimer = useRef(null);
+const glitchTimer = useRef(null);
+useEffect(() => () => { clearTimeout(rollTimer.current); clearTimeout(glitchTimer.current); }, []);
 const setStage = (value) => dispatch({ type: GAME_ACTIONS.UPDATE_FIELD, field: 'stage', value });
 const setPlayer = (value) => dispatch({ type: GAME_ACTIONS.UPDATE_FIELD, field: 'player', value });
 const setAp = (value) => dispatch({ type: GAME_ACTIONS.UPDATE_FIELD, field: 'ap', value });
 const setTurnLimit = (value) => dispatch({ type: GAME_ACTIONS.UPDATE_FIELD, field: 'turnLimit', value });
+const setVentPhase = (value) => dispatch({ type: GAME_ACTIONS.UPDATE_FIELD, field: 'ventPhase', value });
 const setExaminedPoints = (value) => dispatch({ type: GAME_ACTIONS.UPDATE_FIELD, field: 'examinedPoints', value });
 const setActiveModalText = (value) => dispatch({ type: GAME_ACTIONS.UPDATE_FIELD, field: 'activeModalText', value });
 const setFlags = (value) => dispatch({ type: GAME_ACTIONS.UPDATE_FIELD, field: 'flags', value });
@@ -37,7 +41,8 @@ const timeStr = new Date().toTimeString().split(' ')[0];
 const triggerGlitch = (duration = 300) => {
  sfx.playGlitch();
 setIsGlitching(true);
-setTimeout(() => setIsGlitching(false), duration);
+clearTimeout(glitchTimer.current);
+glitchTimer.current = setTimeout(() => setIsGlitching(false), duration);
 };
 
 // ===========================================================================
@@ -80,20 +85,19 @@ const advanceStory = () => {
   advanceStoryModal(modal, setActiveModalText);
 };
 
-const rollD20Check = () => {
+const rollD20Check = (skipAnimation = false) => {
 if (!diceModal.isOpen || diceModal.rolling || diceModal.result || diceBusy.current) return;
 diceBusy.current = true;
 sfx.playDiceRoll();
-setDiceModal((prev) => ({ ...prev, rolling: true, result: null }));
+setDiceModal((prev) => ({ ...prev, rolling: !skipAnimation, result: null }));
 
-setTimeout(() => {
+rollTimer.current = setTimeout(() => {
   const statVal = player.stats[diceModal.statKey] || 10;
   
   // 특성 보너스 체크
   let traitBonus = 0;
   if (player.trait.includes('가벼운 발걸음') && (diceModal.statKey === 'DEX')) traitBonus += 2;
   if (player.trait.includes('카페인 중독') && (diceModal.statKey === 'DEX')) traitBonus -= 1;
-  if (flags.knows_fan_circuit && diceModal.title.includes('환풍기')) traitBonus += 3;
 
   const resultObj = executeD20Check(diceModal.kind === 'CONDITION' ? 10 : statVal, diceModal.dc, diceModal.kind === 'CONDITION' ? 0 : traitBonus);
   if (resultObj.isSuccess) sfx.playSuccess();
@@ -109,7 +113,7 @@ setTimeout(() => {
     advanceAfterRoll.current = false;
     resolveDiceResult(diceModal, resultObj);
   }
-}, 2200);
+}, skipAnimation ? 0 : 2200);
 
 
 };
@@ -130,11 +134,16 @@ const dismissDice = () => {
 };
 
 
-const context = { player, ap, turnLimit, examinedPoints, flags, setStage, setPlayer, setAp, setTurnLimit, setExaminedPoints, setActiveModalText, setFlags, setLogs, setEndingData, sfx, addLog, triggerGlitch, openDiceCheck, openConditionDice, dispatch, getState };
+const context = { player, ap, turnLimit, examinedPoints, flags, setStage, setPlayer, setAp, setTurnLimit, setVentPhase, setExaminedPoints, setActiveModalText, setFlags, setLogs, setEndingData, sfx, addLog, triggerGlitch, openDiceCheck, openConditionDice, dispatch, getState };
 const handlers = Object.fromEntries([
   'handleSelectArchetype', 'handleRollCondition', 'examineCar6Point',
   'examineTunnelPoint', 'examinePlatformPoint', 'choosePlatformExit',
-  'examineMallPoint', 'handleStage5Action', 'handlePushManhole', 'handleRestart',
+  'examineMallPoint', 'handleStage5Action', 'handleVentDefense', 'handleVentEscape', 'handleUseItem', 'handlePushManhole',
 ].map((name) => [name, (...args) => createStageHandlers(context)[name](...args)]));
-return { ...state, ...handlers, isGlitching, rollD20Check, confirmDiceResult, dismissDice, advanceStory, addLog };
+const handleRestart = () => {
+  clearTimeout(rollTimer.current); clearTimeout(glitchTimer.current);
+  diceBusy.current = false; advanceAfterRoll.current = false; setIsGlitching(false);
+  createStageHandlers(context).handleRestart();
+};
+return { ...state, ...handlers, handleRestart, isGlitching, rollD20Check, confirmDiceResult, dismissDice, advanceStory, addLog };
 }

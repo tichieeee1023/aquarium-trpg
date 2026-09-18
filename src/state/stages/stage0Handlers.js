@@ -1,11 +1,12 @@
 import { FATIGUE_ROLL_TABLE } from '../../data/conditionDB.js';
 import { SCENE_ASSETS } from '../../data/assetDB.js';
 
-export function createStage0Handlers({ setStage, setPlayer, setActiveModalText, sfx, addLog, triggerGlitch, openConditionDice }) {
+export function createStage0Handlers({ setStage, setPlayer, setActiveModalText, sfx, addLog, triggerGlitch, openConditionDice, getState }) {
 // ===========================================================================
 // STAGE 0 : 캐릭터 생성 핸들러
 // ===========================================================================
 const handleSelectArchetype = (arch, gender = 'M') => {
+if (getState().stage !== 'SURVEY') return;
 sfx.playClick();
 setPlayer((prev) => ({
 ...prev,
@@ -20,6 +21,7 @@ setStage('DICE_CONDITION');
 };
 
 const handleRollCondition = () => {
+if (getState().stage !== 'DICE_CONDITION' || getState().diceModal.isOpen || getState().activeModalText) return;
 openConditionDice((roll) => {
 const result = FATIGUE_ROLL_TABLE(roll);
 setPlayer((prev) => ({
@@ -27,7 +29,7 @@ setPlayer((prev) => ({
 hp: result.hp,
 maxHp: result.hp,
 san: result.san,
-maxSan: result.san,
+maxSan: 15,
 trait: result.trait
 }));
 addLog(`[컨디션 롤] D20: ${roll} -> ${result.title} 부여 (${result.trait})`);

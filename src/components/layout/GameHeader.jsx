@@ -1,7 +1,7 @@
 import StatGauge from '../sheet/StatGauge.jsx';
-import { Heart, Brain, Battery, Volume2, VolumeX, MapPin, Settings, CircleHelp } from 'lucide-react';
+import { Heart, Brain, Battery, Volume2, VolumeX, MapPin, Settings, CircleHelp, Lightbulb } from 'lucide-react';
 
-export default function GameHeader({ stage, player, soundEnabled, toggleSound, onSettings, onHelp }) {
+export default function GameHeader({ stage, player, ap, turnLimit, soundEnabled, toggleSound, onSettings, onHelp, onHint }) {
   return (
 <header className="flex items-center justify-between px-6 py-2.5 bg-[#080a0f] border-b border-[#1c2333] text-xs">
       <div className="header-location-group flex items-center gap-4">
@@ -24,6 +24,7 @@ export default function GameHeader({ stage, player, soundEnabled, toggleSound, o
       </div>
 
       <div className="header-status flex items-center gap-5">
+        <span className="header-ap text-amber-300">{stage === 'STAGE_5_VENT' ? `TURN ${turnLimit}/3` : `AP ${stage.startsWith('STAGE_') ? ap : 0}/3`}</span>
         <StatGauge icon={<Heart size={13} className="text-rose-500" />} label="HP" value={player.hp} max={player.maxHp} color="rose" />
         <StatGauge icon={<Brain size={13} className="text-cyan-400" />} label="SAN" value={player.san} max={player.maxSan} color="cyan" />
 
@@ -45,6 +46,7 @@ export default function GameHeader({ stage, player, soundEnabled, toggleSound, o
         </button>
         <button className="header-utility" onClick={onSettings} aria-label="설정" title="설정"><Settings size={18} /></button>
         <button className="header-utility" onClick={onHelp} aria-label="도움말" title="도움말"><CircleHelp size={18} /></button>
+        <button className="header-utility header-hint" onClick={onHint} aria-label="현재 구역 힌트" title="현재 구역 힌트"><Lightbulb size={18} /></button>
 
       </div>
     </header>
