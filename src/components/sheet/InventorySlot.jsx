@@ -1,27 +1,31 @@
-export default function InventorySlot({ player, handleUseItem, canUseItems }) {
+export default function InventorySlot({ player, handleUseItem, canUseItems, highlightedItemIds = [] }) {
   return (
-<div className="bg-[#121622] p-3 rounded-xl border border-[#1e2638]">
-            <div className="text-[11px] font-bold text-cyan-400 uppercase mb-2 flex items-center justify-between">
-              <span>INVENTORY BAG</span>
-              <span className="text-[10px] text-neutral-500">{player.inventory.length} SLOTS</span>
+    <div className="bg-[#121622] p-3 rounded-xl border border-[#1e2638]">
+      <div className="text-[11px] font-bold text-cyan-400 uppercase mb-2 flex items-center justify-between">
+        <span>INVENTORY BAG</span>
+        <span className="text-[10px] text-neutral-500">{player.inventory.length} SLOTS</span>
+      </div>
+      <div className="inventory-grid grid gap-2">
+        {player.inventory.map((item) => {
+          const isRelevant = highlightedItemIds.includes(item.id);
+          return (
+            <div key={item.id} className={`p-2 rounded-lg bg-neutral-950/80 border flex flex-col justify-between min-h-20 gap-2 ${isRelevant ? 'border-amber-300 shadow-[0_0_12px_rgba(252,211,77,.28)]' : 'border-neutral-800'}`}>
+              <div className="flex items-center gap-1.5 text-xs">
+                {item.img ? <img src={item.img} alt="" className="w-12 h-8 object-contain rounded" /> : <span>{item.icon}</span>}
+                <span className="font-bold text-neutral-200">{item.name}</span>
+                {isRelevant && <span className="text-amber-300" title="현재 위기와 관련 있는 소지품" aria-label="현재 위기와 관련 있는 소지품">●</span>}
+              </div>
+              <div className="text-[9px] text-neutral-500">{item.desc}</div>
+              {item.consumable && <button className="p-2 bg-[#20323a] text-cyan-200" disabled={!canUseItems || (item.hpRestore ? player.hp >= player.maxHp : player.san >= player.maxSan)} onClick={() => handleUseItem(item.id)}>사용</button>}
             </div>
-            <div className="inventory-grid grid gap-2">
-              {player.inventory.map((item, idx) => (
-                <div key={idx} className="p-2 rounded-lg bg-neutral-950/80 border border-neutral-800 flex flex-col justify-between min-h-20 gap-2">
-                  <div className="flex items-center gap-1.5 text-xs">
-                    {item.img ? <img src={item.img} alt="" className="w-12 h-8 object-contain rounded" /> : <span>{item.icon}</span>}
-                    <span className="font-bold text-neutral-200">{item.name}</span>
-                  </div>
-                  <div className="text-[9px] text-neutral-500">{item.desc}</div>
-                  {item.consumable && <button className="p-2 bg-[#20323a] text-cyan-200" disabled={!canUseItems || (item.hpRestore ? player.hp >= player.maxHp : player.san >= player.maxSan)} onClick={() => handleUseItem(item.id)}>사용</button>}
-                </div>
-              ))}
-              {Array.from({ length: Math.max(0, 5 - player.inventory.length) }).map((_, i) => (
-                <div key={`empty-${i}`} className="h-14 rounded-lg border border-dashed border-neutral-900 flex items-center justify-center text-neutral-700 text-xs">
-                  EMPTY
-                </div>
-              ))}
-            </div>
+          );
+        })}
+        {Array.from({ length: Math.max(0, 5 - player.inventory.length) }).map((_, i) => (
+          <div key={`empty-${i}`} className="h-14 rounded-lg border border-dashed border-neutral-900 flex items-center justify-center text-neutral-700 text-xs">
+            EMPTY
           </div>
+        ))}
+      </div>
+    </div>
   );
 }

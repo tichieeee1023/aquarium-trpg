@@ -557,6 +557,23 @@ function gameReducer(state, action) {
   };
 }
 
+    case 'APPLY_NONLETHAL_DAMAGE': {
+  const damage = action.payload.amount || 0;
+  const nextHp = Math.max(1, state.character.hp - damage);
+
+  return {
+    ...state,
+    character: {
+      ...state.character,
+      hp: nextHp
+    },
+    logs: [
+      action.payload.log || `[강행 돌파] HP -${damage}`,
+      ...state.logs
+    ]
+  };
+}
+
     case 'USE_ITEM': {
       const item = ITEM_DB[action.payload];
       if (!item || !item.consumable || !state.inventory.some(i => i.id === item.id) || state.phase === 'ENDING' || state.diceModal.isOpen) return state;

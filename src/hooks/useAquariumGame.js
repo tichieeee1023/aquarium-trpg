@@ -197,9 +197,9 @@ export function useAquariumGame(sfx, settings) {
     });
 
     if (isSuccess && onSuccess) {
-      onSuccess();
+      onSuccess(state.diceModal.roll);
     } else if (!isSuccess && onFail) {
-      onFail();
+      onFail(state.diceModal.roll);
     }
   };
 
@@ -243,73 +243,31 @@ export function useAquariumGame(sfx, settings) {
       const resolveElectricShock = () => {
         const canSurvive =
           state.flags.hasRubberBoots ||
-          state.flags.isGateUnlocked;
-
-        const isDiver =
+          state.flags.isGateUnlocked ||
           state.character.key === 'DIVER';
 
-        // 절연 장화 / 비상문 확보
         if (canSurvive) {
           sfx.playSuccess();
           advanceStage('STAGE_2_BULKHEAD');
           return;
         }
 
-        // 다이버 전용 특권
-        if (isDiver) {
-          triggerD20(
-            '네오프렌 다이빙 슈트 — 누전 회피',
-            'DEX',
-            11,
-            0,
-
-            // 성공 → HP -6 후 생존
-            () => {
-              dispatch({
-                type: 'APPLY_DAMAGE',
-                payload: {
-                  amount: 6,
-                  log:
-                    '[누전 돌파] 네오프렌 슈트가 전류를 간신히 차단했다. 화상을 입었지만 빠져나왔다. (HP -6)'
-                }
-              });
-
-              sfx.playSuccess();
-
-              advanceStage(
-                'STAGE_2_BULKHEAD'
-              );
-            },
-
-            // 실패 → HP -10이지만 생존
-            () => {
-              dispatch({
-                type: 'APPLY_DAMAGE',
-                payload: {
-                  amount: 10,
-                  log:
-                    '[누전 돌파] 전류가 슈트를 뚫고 살갗을 태웠다. 심한 감전 열상을 입고 간신히 기어 나왔다. (HP -10)'
-                }
-              });
-
-              sfx.playDanger();
-
-              advanceStage(
-                'STAGE_2_BULKHEAD'
-              );
-            }
-          );
-
+        if (settings.easyMode) {
+          dispatch({ type: 'APPLY_NONLETHAL_DAMAGE', payload: { amount: 6, log: '[이지 모드 · 누전 돌파] 화상을 입었지만 비상 통로로 빠져나왔다. (HP -6)' } });
+          sfx.playDanger();
+          advanceStage('STAGE_2_BULKHEAD');
           return;
         }
 
-        // 생존 수단 없음
-        sfx.playDanger();
-
-        dispatch({
-          type: 'TRIGGER_ENDING',
-          payload: 'BAD_1'
-        });
+        triggerD20(
+          '감전 구역 강행 돌파', 'DEX', 8, 0,
+          () => {
+            dispatch({ type: 'APPLY_NONLETHAL_DAMAGE', payload: { amount: 6, log: '[누전 돌파] 화상을 입었지만 비상 통로로 빠져나왔다. (HP -6)' } });
+            sfx.playSuccess();
+            advanceStage('STAGE_2_BULKHEAD');
+          },
+          () => { sfx.playDanger(); dispatch({ type: 'TRIGGER_ENDING', payload: 'BAD_1' }); }
+        );
       };
       if (!settings.disableEffects) {
         setScreenFlash(false);
@@ -359,68 +317,29 @@ export function useAquariumGame(sfx, settings) {
         const hasCrowbar = state.flags.hasCrowbar;
         const isPressureReduced = state.flags.isPressureReduced;
 
-        // 빠루 보유 → STR DC 10
-        if (hasCrowbar) {
-          const bonus =
-            state.character.key === 'AQUARIST'
-              ? 2
-              : 0;
-
-          triggerD20(
-            '수밀문 틈 강제 고정',
-            'STR',
-            10,
-            bonus,
-            () => {
-              sfx.playSuccess();
-              advanceStage('STAGE_3_FREEZER');
-            },
-            () => {
-              sfx.playDanger();
-
-              dispatch({
-                type: 'TRIGGER_ENDING',
-                payload: 'BAD_2'
-              });
-            }
-          );
-
+        if (hasCrowbar || isPressureReduced) {
+          sfx.playSuccess();
+          advanceStage('STAGE_3_FREEZER');
           return;
         }
 
-        // 빠루 없음 + 수압 감소 성공 → DEX DC 12
-        if (isPressureReduced) {
-          triggerD20(
-            '수밀문 하단 슬라이딩 돌파',
-            'DEX',
-            12,
-            0,
-            () => {
-              sfx.playSuccess();
-              advanceStage('STAGE_3_FREEZER');
-            },
-            () => {
-              sfx.playDanger();
-
-              dispatch({
-                type: 'TRIGGER_ENDING',
-                payload: 'BAD_2'
-              });
-            }
-          );
-
+        if (settings.easyMode) {
+          dispatch({ type: 'APPLY_NONLETHAL_DAMAGE', payload: { amount: 7, log: '[이지 모드 · 격벽 돌파] 철판에 짓눌려 크게 다쳤지만 반대편으로 굴러 나왔다. (HP -7)' } });
+          sfx.playDanger();
+          advanceStage('STAGE_3_FREEZER');
           return;
         }
 
-        // 둘 다 없음 → BAD END
-        sfx.playDanger();
-
-        dispatch({
-          type: 'TRIGGER_ENDING',
-          payload: 'BAD_2'
-        });
+        triggerD20(
+          '수밀문 아래 강행 돌파', 'DEX', 9, 0,
+          () => {
+            dispatch({ type: 'APPLY_NONLETHAL_DAMAGE', payload: { amount: 7, log: '[격벽 돌파] 철판에 짓눌려 크게 다쳤지만 반대편으로 굴러 나왔다. (HP -7)' } });
+            sfx.playSuccess();
+            advanceStage('STAGE_3_FREEZER');
+          },
+          () => { sfx.playDanger(); dispatch({ type: 'TRIGGER_ENDING', payload: 'BAD_2' }); }
+        );
       };
-
       dispatch({
         type: 'SET_BG',
         payload:
@@ -437,7 +356,7 @@ export function useAquariumGame(sfx, settings) {
         body: `철컥, 쿵—!
 
 강철 수밀문이 마지막 틈을 짓이기며 바닥으로 내려앉기 시작했다.
-이대로 닫히면 이 통로는 거대한 수조가 된다.`,
+빠루나 수압 조절이 있다면 안전하게 빠져나갈 수 있다. 없다면 몸을 던져 통과해야 한다.`,
 
         image: {
           src:
@@ -462,85 +381,63 @@ export function useAquariumGame(sfx, settings) {
 
     if (state.phase === 'STAGE_3_FREEZER') {
       const resolveFrozenDoor = () => {
-        const hasTorch =
-          state.flags.hasHeatingTorch;
+        const hasTorch = state.flags.hasHeatingTorch;
+        const isChillerOff = state.flags.isChillerOff;
+        const hasHexWrench = state.inventory.some(item => item.id === 'HEX_WRENCH');
+        const hasColdVest = state.flags.hasColdVest;
 
-        const isChillerOff =
-          state.flags.isChillerOff;
-
-        // 가스 토치 확보 → DEX DC 8
-        if (hasTorch) {
-          triggerD20(
-            '가스 토치 해빙',
-            'DEX',
-            8,
-            0,
-
-            () => {
-              sfx.playSuccess();
-              advanceStage('STAGE_4_PUMP');
-            },
-
-            () => {
-              sfx.playDanger();
-
-              dispatch({
-                type: 'TRIGGER_ENDING',
-                payload: 'BAD_3'
-              });
-            }
-          );
-
+        if (hasTorch || isChillerOff) {
+          sfx.playSuccess();
+          advanceStage('STAGE_4_PUMP');
           return;
         }
 
-        // 토치 없음 + 냉각기 정지 → STR DC 13
-        if (isChillerOff) {
-          const bonus =
-            state.character.key === 'AQUARIST'
-              ? 2
-              : 0;
-
-          triggerD20(
-            '결빙 래치 강제 파쇄',
-            'STR',
-            13,
-            bonus,
-
-            () => {
-              sfx.playSuccess();
-              advanceStage('STAGE_4_PUMP');
-            },
-
-            () => {
-              sfx.playDanger();
-
-              dispatch({
-                type: 'TRIGGER_ENDING',
-                payload: 'BAD_3'
-              });
+        if (hasHexWrench) {
+          dispatch({
+            type: 'APPLY_NONLETHAL_DAMAGE',
+            payload: {
+              amount: 2,
+              log: '[동결 돌파] 육각 렌치로 얼어붙은 래치를 깨뜨렸다. 손을 베였지만 문은 열렸다. (HP -2)'
             }
-          );
-
+          });
+          sfx.playDanger();
+          advanceStage('STAGE_4_PUMP');
           return;
         }
 
-        // 토치도 없고 냉각기도 못 멈춤
-        sfx.playDanger();
+        const damage = hasColdVest ? 3 : 6;
+        if (settings.easyMode) {
+          dispatch({
+            type: 'APPLY_NONLETHAL_DAMAGE',
+            payload: {
+              amount: damage,
+              log: hasColdVest
+                ? '[이지 모드 · 동결 돌파] 방한 조끼가 한기를 버티게 해줬다. 탈진했지만 문은 열렸다. (HP -3)'
+                : '[이지 모드 · 동결 돌파] 저체온증을 입었지만 문은 열렸다. (HP -6)'
+            }
+          });
+          sfx.playDanger();
+          advanceStage('STAGE_4_PUMP');
+          return;
+        }
 
-        dispatch({
-          type: 'TRIGGER_ENDING',
-          payload: 'BAD_3'
-        });
+        triggerD20(
+          '결빙 래치 강행 파쇄', 'STR', hasColdVest ? 8 : 10, state.character.key === 'AQUARIST' ? 2 : 0,
+          () => {
+            dispatch({ type: 'APPLY_NONLETHAL_DAMAGE', payload: { amount: damage, log: `[동결 돌파] 무리하게 래치를 파쇄해 탈진했지만 문은 열렸다. (HP -${damage})` } });
+            sfx.playSuccess();
+            advanceStage('STAGE_4_PUMP');
+          },
+          () => { sfx.playDanger(); dispatch({ type: 'TRIGGER_ENDING', payload: 'BAD_3' }); }
+        );
       };
-
       setStory({
         kind: 'SCENE',
         title: '00:18 — 동결 한계',
         tag: '위기 발생',
 
         body: `손가락 끝의 감각이 사라지고, 숨을 들이쉴 때마다 차가운 통증이 폐를 찔렀다.
-얼어붙은 방열문을 지금 열지 못하면, 여기서 그대로 냉동 표본이 된다.`,
+토치나 멈춘 냉각기가 있다면 안전하게 열 수 있다. 없다면 한기를 견디며 래치를 강제로 비틀어야 한다.`,
 
         image: {
           src:
@@ -655,12 +552,19 @@ export function useAquariumGame(sfx, settings) {
         }, settings.disableEffects ? 0 : 700);
       },
 
-      () => {
+      (rawDice) => {
         sfx.playDanger();
+
+        const ending =
+          rawDice === 1 || keyCount <= 1
+            ? 'BAD_4'
+            : keyCount === 2
+              ? 'NORMAL'
+              : 'GOOD';
 
         dispatch({
           type: 'TRIGGER_ENDING',
-          payload: 'BAD_4'
+          payload: ending
         });
       }
     );

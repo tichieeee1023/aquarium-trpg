@@ -1,0 +1,11 @@
+const STAGE_RELEVANCE = {
+  STAGE_1_JELLYFISH: ['RUBBER_BOOTS', 'WETSUIT'],
+  STAGE_2_BULKHEAD: ['CROWBAR'],
+  STAGE_3_FREEZER: ['HEATING_TORCH'],
+  STAGE_4_PUMP: ['LINE_CUTTER', 'OXYGEN_MASK'],
+  STAGE_5_DOME: ['HEATING_TORCH', 'CROWBAR', 'OXYGEN_MASK']
+};
+
+export function getRelevantItemIds(stage) {
+  return STAGE_RELEVANCE[stage] ?? [];
+}

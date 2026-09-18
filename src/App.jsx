@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAudioSynth } from './hooks/useAudioSynth.js';
 import { useAquariumGame } from './hooks/useAquariumGame.js';
 import { useGameSettings } from './hooks/useGameSettings.js';
@@ -18,6 +18,7 @@ import UtilityModal from './components/modal/UtilityModal.jsx';
 import CollectionModal from './components/modal/CollectionModal.jsx';
 
 import { SCENARIOS } from './aquariumEngine.js';
+import { getRelevantItemIds } from './utils/itemRelevance.js';
 
 const OPENING_KEY = 'aquarium-opening-seen-v1';
 
@@ -71,6 +72,11 @@ export default function App() {
 
   const collectionComplete =
     collected.length === 7;
+
+  const highlightedItemIds =
+    settings.easyMode
+      ? getRelevantItemIds(game.stage)
+      : [];
 
   const closeUtility =
     useCallback(
@@ -365,6 +371,9 @@ export default function App() {
                 }
                 canUseItems={
                   canUseItems
+                }
+                highlightedItemIds={
+                  highlightedItemIds
                 }
                 discardItem={
                   game.discardItem
