@@ -22,7 +22,7 @@ const story = async (expectedScene = null) => {
   const backdrop = page.getByTestId('story-backdrop');
   await backdrop.waitFor();
   if (expectedScene) assert.ok((await backdrop.locator('img').first().getAttribute('src')).includes(expectedScene));
-  const button = backdrop.getByRole('button', { name: '>다음', exact: true });
+  const button = backdrop.getByRole('button', { name: '[다음]', exact: true });
   if (await button.getAttribute('data-typing') === 'typing') await button.click();
   await button.click(); await backdrop.waitFor({ state: 'hidden' });
 };
@@ -45,7 +45,7 @@ const start = async (job = '대형 어류 아쿠아리스트') => {
   await choose('게임 시작');
   if (await page.getByRole('button', { name: '인트로 건너뛰기' }).isVisible()) await choose('인트로 건너뛰기');
   await choose(job); await choose('이 사원증으로 당직 시작');
-  await choose('D20 주사위 굴려 피로도 확정'); await roll();
+  await choose('ROLL D20'); await roll();
 };
 const advance = async (dice = false, expectedScene = null) => { await choose('위기 결단 & 돌파'); if (dice) await roll(); if (expectedScene) await story(expectedScene); };
 const images = async () => {
@@ -75,7 +75,7 @@ try {
   await choose('여성'); await choose('대형 어류 아쿠아리스트');
   await page.getByRole('heading', { name: '당직 전 사원증 확인' }).waitFor();
   await images(); await choose('이 사원증으로 당직 시작');
-  await choose('D20 주사위 굴려 피로도 확정'); await roll();
+  await choose('ROLL D20'); await roll();
   assert.equal(await page.locator('.scene-description-static').isVisible(), true, 'desktop description remains open');
   assert.ok((await page.locator('.scene-overview-content > img').getAttribute('src')).includes('scene_stage1_jellyfish.png'));
   for (const width of [1440, 1024, 844, 390, 320]) {

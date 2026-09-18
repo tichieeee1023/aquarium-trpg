@@ -11,7 +11,7 @@ const STAGE_HINTS = {
   DICE_CONDITION: '오늘의 피로는 숫자가 아니라, 어둠을 버티는 숨의 길이입니다.',
 };
 
-export default function UtilityModal({ kind, stage, settings, updateSettings, onClose }) {
+export default function UtilityModal({ kind, stage, settings, updateSettings, onCredits, onClose }) {
   const ref = useRef(null);
   useEffect(() => {
     const previousFocus = document.activeElement;
@@ -46,14 +46,15 @@ export default function UtilityModal({ kind, stage, settings, updateSettings, on
             <p className="setting-note">설정은 이 브라우저에 자동 저장됩니다.</p>
           </> : kind === 'hint' ? <div className="stage-hint-content"><span className="stage-hint-icon" aria-hidden="true">💡</span><p>{STAGE_HINTS[stage] ?? '아직 보이지 않는 길에도, 지나온 흔적은 남아 있습니다.'}</p></div> : <div className="help-content">
             <h3>1. 캐릭터를 선택하세요</h3><p>캐릭터마다 능력치와 시작 도구가 다릅니다. 컨디션 주사위를 굴리면 탐사가 시작됩니다.</p>
-            <h3>2. AP를 확인하고 조사하세요</h3><p>각 구역의 6곳 중 3곳을 조사할 수 있습니다. 이미 조사한 장소는 다시 선택할 수 없습니다. 조사를 마치면 위기 결단으로 다음 구역을 돌파합니다.</p>
-            <h3>3. D20 주사위로 판정합니다</h3><p>주사위 눈금과 능력치 보정의 합이 목표 난이도(DC)에 도달하면 성공합니다. 20은 대성공, 1은 대실패입니다.</p>
+            <h3>2. AP를 확인하고 조사하세요</h3><p>각 구역의 6곳 중 3곳을 조사할 수 있습니다. 조사가 끝나면 다음 구역으로 이동합니다.</p>
+            <h3>3. D20 주사위로 판정합니다</h3><p>주사위는 특수 행동이나 장비 없이 위험을 강행할 때만 굴립니다. 20은 대성공, 1은 대실패입니다.</p>
             <h3>4. 도구와 상태를 살펴보세요</h3><p>획득한 도구는 소지품에 자동 추가됩니다. HP는 체력, SAN은 정신력입니다. 둘 중 하나가 0이면 생존에 실패합니다. 진정제는 소지품의 사용 버튼으로 회복할 수 있습니다.</p>
-            <h3>최종전과 엔딩 도감</h3><p>토치·빠루·산소마스크로 채광 돔을 돌파하세요. 가방은 5칸이며 가방 정리로 장비를 내려놓을 수 있습니다. 완료한 7종 엔딩은 도감에 저장되고, 모두 모으면 프로젝트 심해 침식 최종 진상 파일을 열 수 있습니다.</p>
+            <h3>최종전과 엔딩 도감</h3><p>토치·빠루·산소마스크로 채광 돔을 돌파하세요. 획득한 장비는 가방에 모두 보관됩니다. 완료한 7종 엔딩은 도감에 저장됩니다.</p>
             <h3>5. 이야기를 읽고 다음으로 진행하세요</h3><p>텍스트 출력 중에는 &gt;다음이나 모달 바깥을 누르면 문장이 완성됩니다. 한 번 더 누르면 다음 행동으로 진행합니다. Esc도 사용할 수 있습니다.</p>
             <h3>작은 화면에서는</h3><p>장면 설명과 캐릭터·진행 기록은 접혀 있습니다. 각 제목을 눌러 펼칠 수 있습니다. 글씨가 작거나 이펙트가 불편하면 설정을 열어 조정하세요.</p>
           </div>}
-          <button className="utility-done" onClick={onClose}>확인</button>
+          {kind === 'help' && <button className="utility-credits" onClick={onCredits}>CREDITS</button>}
+<button className="utility-done" onClick={onClose}>확인</button>
         </section>
       </div>
     </ModalLayer>

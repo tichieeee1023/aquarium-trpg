@@ -16,8 +16,10 @@ import IntroScreen from './components/narrative/IntroScreen.jsx';
 import OpeningSequence from './components/narrative/OpeningSequence.jsx';
 import UtilityModal from './components/modal/UtilityModal.jsx';
 import CollectionModal from './components/modal/CollectionModal.jsx';
+import MobileInventoryDock from './components/sheet/MobileInventoryDock.jsx';
+import CreditsModal from './components/modal/CreditsModal.jsx';
 
-import { SCENARIOS } from './aquariumEngine.js';
+import { SCENARIOS } from './game/index.js';
 import { getRelevantItemIds } from './utils/itemRelevance.js';
 
 const OPENING_KEY = 'aquarium-opening-seen-v1';
@@ -59,6 +61,9 @@ export default function App() {
 
   const [utility, setUtility] =
     useState(null);
+
+  const [celebrationActive, setCelebrationActive] =
+    useState(false);
 
   const {
     collected,
@@ -199,6 +204,22 @@ export default function App() {
   };
 
   // =========================================================
+  // SECRET ENDING → HOME CELEBRATION
+  // =========================================================
+
+  const completeSecretEnding = () => {
+    setUtility(null);
+
+    game.handleRestart();
+
+    setShowOpening(false);
+    setShowIntro(true);
+    setCelebrationActive(true);
+
+    sfx.playFinalFanfare();
+  };
+
+  // =========================================================
   // ITEM
   // =========================================================
 
@@ -218,14 +239,15 @@ export default function App() {
     <MainLayout>
 
       {/* ================================================
-          전체 화면 전기 섬광 연출
-          useAquariumGame의 screenFlash가 true일 때 표시
+          전체 화면 시네마틱 효과
+          전기 섬광 / 암전 / 냉기 / 돔 파쇄 / 지상 생환
       ================================================= */}
 
-      {game.screenFlash &&
+      {game.screenEffect &&
         !settings.disableEffects && (
           <div
-            className="screen-flash"
+            key={game.screenEffect.key}
+            className={`screen-effect screen-effect--${game.screenEffect.type}`}
             aria-hidden="true"
           />
         )}
@@ -264,6 +286,12 @@ export default function App() {
           }
           disableEffects={
             settings.disableEffects
+          }
+          celebrationActive={
+            celebrationActive
+          }
+          onCelebrationFinish={() =>
+            setCelebrationActive(false)
           }
         />
       ) : showOpening ? (
@@ -397,6 +425,15 @@ export default function App() {
                 }
               />
 
+              {game.stage.startsWith('STAGE_') && (
+                <MobileInventoryDock
+                  player={game.player}
+                  handleUseItem={game.handleUseItem}
+                  canUseItems={canUseItems}
+                  highlightedItemIds={highlightedItemIds}
+                />
+              )}
+
             </div>
           )}
 
@@ -436,40 +473,26 @@ export default function App() {
           UTILITY / COLLECTION
       ================================================= */}
 
-      {utility ===
-      'collection' ? (
+      {utility === 'credits' ? (
+        <CreditsModal onClose={closeUtility} />
+      ) : utility === 'collection' ? (
         collectionUnlocked && (
           <CollectionModal
-            collected={
-              collected
-            }
-            onClose={
-              closeUtility
-            }
+            collected={collected}
+            onClose={closeUtility}
+            onSecretComplete={completeSecretEnding}
           />
         )
-      ) : (
-        utility && (
-          <UtilityModal
-            kind={
-              utility
-            }
-            stage={
-              game.stage
-            }
-            settings={
-              settings
-            }
-            updateSettings={
-              updateSettings
-            }
-            onClose={
-              closeUtility
-            }
-          />
-        )
-      )}
-
+      ) : utility ? (
+        <UtilityModal
+          kind={utility}
+          stage={game.stage}
+          settings={settings}
+          updateSettings={updateSettings}
+          onCredits={() => setUtility('credits')}
+          onClose={closeUtility}
+        />
+      ) : null}
     </MainLayout>
   );
 }

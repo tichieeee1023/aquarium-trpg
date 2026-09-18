@@ -4,42 +4,37 @@ import {
   SCENARIOS,
   initialGameState,
   gameReducer
-} from '../aquariumEngine.js';
+} from '../game/index.js';
+import { NEXT_STAGE, createStageIntroStory, getStageTransitionStory } from '../game/stageFlow.js';
+import { FINAL_ESCAPE_STEPS, getFinalEnding, hasFinalStepTool } from '../game/finalEscape.js';
 
-const NEXT_STAGE = {
-  STAGE_1_JELLYFISH: 'STAGE_2_BULKHEAD',
-  STAGE_2_BULKHEAD: 'STAGE_3_FREEZER',
-  STAGE_3_FREEZER: 'STAGE_4_PUMP',
-  STAGE_4_PUMP: 'STAGE_5_DOME'
-};
 
 export function useAquariumGame(sfx, settings) {
   const [state, dispatch] = useReducer(gameReducer, initialGameState);
   const [isRolling, setIsRolling] = useState(false);
   const [activeModalText, setStory] = useState(null);
   const [storyQueue, setStoryQueue] = useState([]);
-  const [screenFlash, setScreenFlash] = useState(false);
+  const [screenEffect, setScreenEffect] = useState(null);
+  const [oxygenLockerRetry, setOxygenLockerRetry] = useState(false);
+
+  const triggerScreenEffect = (type, duration = 700) => {
+    if (settings.disableEffects) return;
+
+    const key = `${type}-${Date.now()}-${Math.random()}`;
+
+    setScreenEffect({ type, key });
+
+    window.setTimeout(() => {
+      setScreenEffect(current =>
+        current?.key === key ? null : current
+      );
+    }, duration);
+  };
 
   // =========================================================
   // STORY
   // =========================================================
 
-  const makeStageIntroStory = stageKey => {
-    const scenario = SCENARIOS[stageKey];
-
-    if (!scenario) return null;
-
-    return {
-      kind: 'SCENE',
-      title: scenario.title,
-      tag: '구역 진입',
-      body: scenario.sub,
-      image: {
-        src: scenario.bg,
-        alt: scenario.title
-      }
-    };
-  };
 
   const showStorySequence = stories => {
     const validStories = stories.filter(Boolean);
@@ -140,7 +135,11 @@ export function useAquariumGame(sfx, settings) {
           ? false
           : total >= state.diceModal.dc;
 
-      if (isSuccess) {
+      if (isCritSuccess) {
+        sfx.playCritical();
+      } else if (isCritFail) {
+        sfx.playFumble();
+      } else if (isSuccess) {
         sfx.playSuccess();
       } else {
         sfx.playDanger();
@@ -180,7 +179,7 @@ export function useAquariumGame(sfx, settings) {
       });
 
       showStorySequence([
-        makeStageIntroStory('STAGE_1_JELLYFISH')
+        createStageIntroStory('STAGE_1_JELLYFISH')
       ]);
 
       return;
@@ -226,7 +225,8 @@ export function useAquariumGame(sfx, settings) {
     });
 
     showStorySequence([
-      makeStageIntroStory(targetStage)
+      getStageTransitionStory(state.phase, targetStage),
+      createStageIntroStory(targetStage)
     ]);
   };
 
@@ -238,108 +238,168 @@ export function useAquariumGame(sfx, settings) {
     // -------------------------------------------------------
     // STAGE 1 — 누전 폭발
     // -------------------------------------------------------
-
     if (state.phase === 'STAGE_1_JELLYFISH') {
       const resolveElectricShock = () => {
-        const canSurvive =
+        const hasSafeRoute =
           state.flags.hasRubberBoots ||
-          state.flags.isGateUnlocked ||
-          state.character.key === 'DIVER';
+          state.flags.isGateUnlocked;
 
-        if (canSurvive) {
+        const hasWetsuit =
+          state.inventory.some(item => item.id === 'WETSUIT');
+
+        if (hasSafeRoute) {
           sfx.playSuccess();
           advanceStage('STAGE_2_BULKHEAD');
           return;
         }
 
+        if (
+          state.character.key === 'DIVER' &&
+          hasWetsuit
+        ) {
+          triggerD20(
+            '절연 슈트로 누전 구역 돌파',
+            'DEX',
+            11,
+            0,
+            () => {
+              dispatch({
+                type: 'APPLY_NONLETHAL_DAMAGE',
+                payload: {
+                  amount: 6,
+                  log: '[다이버 특권 · 누전 돌파] 절연 슈트가 치명상을 막았다. (HP -6)'
+                }
+              });
+              sfx.playDanger();
+              advanceStage('STAGE_2_BULKHEAD');
+            },
+            () => {
+              dispatch({
+                type: 'APPLY_NONLETHAL_DAMAGE',
+                payload: {
+                  amount: 10,
+                  log: '[다이버 특권 · 누전 실패] 강한 감전과 화상을 입었지만 간신히 빠져나왔다. (HP -10)'
+                }
+              });
+              sfx.playDanger();
+              advanceStage('STAGE_2_BULKHEAD');
+            }
+          );
+          return;
+        }
+
         if (settings.easyMode) {
-          dispatch({ type: 'APPLY_NONLETHAL_DAMAGE', payload: { amount: 6, log: '[이지 모드 · 누전 돌파] 화상을 입었지만 비상 통로로 빠져나왔다. (HP -6)' } });
+          dispatch({
+            type: 'APPLY_NONLETHAL_DAMAGE',
+            payload: {
+              amount: 3,
+              log: '[이지 모드 · 누전 돌파] 화상을 입었지만 비상 통로로 빠져나왔다. (HP -3)'
+            }
+          });
           sfx.playDanger();
           advanceStage('STAGE_2_BULKHEAD');
           return;
         }
 
-        triggerD20(
-          '감전 구역 강행 돌파', 'DEX', 8, 0,
-          () => {
-            dispatch({ type: 'APPLY_NONLETHAL_DAMAGE', payload: { amount: 6, log: '[누전 돌파] 화상을 입었지만 비상 통로로 빠져나왔다. (HP -6)' } });
-            sfx.playSuccess();
-            advanceStage('STAGE_2_BULKHEAD');
-          },
-          () => { sfx.playDanger(); dispatch({ type: 'TRIGGER_ENDING', payload: 'BAD_1' }); }
-        );
-      };
-      if (!settings.disableEffects) {
-        setScreenFlash(false);
-
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            setScreenFlash(true);
-
-            setTimeout(() => {
-              setScreenFlash(false);
-            }, 900);
-          });
+        sfx.playDanger();
+        dispatch({
+          type: 'TRIGGER_ENDING',
+          payload: 'BAD_1'
         });
-      }
-      // 누전 폭발 장면을 먼저 보여준다.
+      };
+
+      triggerScreenEffect('electric', 1100);
+      sfx.playGlitch();
+
       setStory({
         kind: 'SCENE',
         title: '23:53 — 누전 폭발',
         tag: '위기 발생',
-
         body: `지지지직— 콰앙!
 
 끊어진 고압 케이블이 바닥의 물 위로 떨어진 순간, 새하얀 섬광이 시야를 집어삼켰다.
 뒤이어 아쿠아리움 전체가 울릴 만큼 거대한 충격과 파열음이 터져 나왔다.`,
-
         image: {
-          src:
-            '/assets/scenes/scene_stage1_blackout_shock.png',
-
-          alt:
-            '끊어진 고압 케이블이 물 위로 떨어진 해파리 터널'
+          src: '/assets/scenes/scene_stage1_blackout_shock.webp',
+          alt: '끊어진 고압 케이블이 물 위로 떨어진 해파리 터널'
         },
-
-        onAdvance:
-          resolveElectricShock
+        onAdvance: resolveElectricShock
       });
 
       return;
     }
 
     // -------------------------------------------------------
-    // STAGE 2
+    // STAGE 2 — 수밀 격벽
     // -------------------------------------------------------
-
     if (state.phase === 'STAGE_2_BULKHEAD') {
       const resolveBulkhead = () => {
         const hasCrowbar = state.flags.hasCrowbar;
         const isPressureReduced = state.flags.isPressureReduced;
+        const strBonus = state.character.key === 'AQUARIST' ? 2 : 0;
 
-        if (hasCrowbar || isPressureReduced) {
-          sfx.playSuccess();
-          advanceStage('STAGE_3_FREEZER');
+        if (hasCrowbar) {
+          triggerD20(
+            '빠루로 수밀문 틈 벌리기',
+            'STR',
+            10,
+            strBonus,
+            () => {
+              sfx.playSuccess();
+              advanceStage('STAGE_3_FREEZER');
+            },
+            () => {
+              sfx.playDanger();
+              dispatch({
+                type: 'TRIGGER_ENDING',
+                payload: 'BAD_2'
+              });
+            }
+          );
+          return;
+        }
+
+        if (isPressureReduced) {
+          triggerD20(
+            '수압이 낮아진 틈으로 몸 던지기',
+            'DEX',
+            12,
+            0,
+            () => {
+              sfx.playSuccess();
+              advanceStage('STAGE_3_FREEZER');
+            },
+            () => {
+              sfx.playDanger();
+              dispatch({
+                type: 'TRIGGER_ENDING',
+                payload: 'BAD_2'
+              });
+            }
+          );
           return;
         }
 
         if (settings.easyMode) {
-          dispatch({ type: 'APPLY_NONLETHAL_DAMAGE', payload: { amount: 7, log: '[이지 모드 · 격벽 돌파] 철판에 짓눌려 크게 다쳤지만 반대편으로 굴러 나왔다. (HP -7)' } });
+          dispatch({
+            type: 'APPLY_NONLETHAL_DAMAGE',
+            payload: {
+              amount: 3,
+              log: '[이지 모드 · 격벽 돌파] 철판에 부딪혔지만 반대편으로 굴러 나왔다. (HP -3)'
+            }
+          });
           sfx.playDanger();
           advanceStage('STAGE_3_FREEZER');
           return;
         }
 
-        triggerD20(
-          '수밀문 아래 강행 돌파', 'DEX', 9, 0,
-          () => {
-            dispatch({ type: 'APPLY_NONLETHAL_DAMAGE', payload: { amount: 7, log: '[격벽 돌파] 철판에 짓눌려 크게 다쳤지만 반대편으로 굴러 나왔다. (HP -7)' } });
-            sfx.playSuccess();
-            advanceStage('STAGE_3_FREEZER');
-          },
-          () => { sfx.playDanger(); dispatch({ type: 'TRIGGER_ENDING', payload: 'BAD_2' }); }
-        );
+        sfx.playDanger();
+        dispatch({
+          type: 'TRIGGER_ENDING',
+          payload: 'BAD_2'
+        });
       };
+
       dispatch({
         type: 'SET_BG',
         payload:
@@ -348,72 +408,87 @@ export function useAquariumGame(sfx, settings) {
             .closingBg
       });
 
+      sfx.playMetalSlam();
+      triggerScreenEffect('blackout', 650);
+
       setStory({
         kind: 'SCENE',
         title: '00:06 — 격벽 폐쇄',
         tag: '위기 발생',
-
         body: `철컥, 쿵—!
 
 강철 수밀문이 마지막 틈을 짓이기며 바닥으로 내려앉기 시작했다.
-빠루나 수압 조절이 있다면 안전하게 빠져나갈 수 있다. 없다면 몸을 던져 통과해야 한다.`,
-
+빠루가 있다면 문틈을 벌릴 수 있고, 수압을 낮췄다면 몸을 던져 통과할 수 있다.`,
         image: {
           src:
             SCENARIOS
               .STAGE_2_BULKHEAD
               .closingBg,
-
-          alt:
-            '바닥으로 내려오는 강철 수밀문'
+          alt: '바닥으로 내려오는 강철 수밀문'
         },
-
-        onAdvance:
-          resolveBulkhead
+        onAdvance: resolveBulkhead
       });
 
       return;
     }
 
     // -------------------------------------------------------
-    // STAGE 3
+    // STAGE 3 — 냉동창고
     // -------------------------------------------------------
-
     if (state.phase === 'STAGE_3_FREEZER') {
       const resolveFrozenDoor = () => {
         const hasTorch = state.flags.hasHeatingTorch;
         const isChillerOff = state.flags.isChillerOff;
-        const hasHexWrench = state.inventory.some(item => item.id === 'HEX_WRENCH');
-        const hasColdVest = state.flags.hasColdVest;
+        const strBonus = state.character.key === 'AQUARIST' ? 2 : 0;
 
-        if (hasTorch || isChillerOff) {
-          sfx.playSuccess();
-          advanceStage('STAGE_4_PUMP');
-          return;
-        }
-
-        if (hasHexWrench) {
-          dispatch({
-            type: 'APPLY_NONLETHAL_DAMAGE',
-            payload: {
-              amount: 2,
-              log: '[동결 돌파] 육각 렌치로 얼어붙은 래치를 깨뜨렸다. 손을 베였지만 문은 열렸다. (HP -2)'
+        if (hasTorch) {
+          triggerD20(
+            '가스 토치로 결빙 래치 해빙',
+            'DEX',
+            8,
+            0,
+            () => {
+              sfx.playSuccess();
+              advanceStage('STAGE_4_PUMP');
+            },
+            () => {
+              sfx.playDanger();
+              dispatch({
+                type: 'TRIGGER_ENDING',
+                payload: 'BAD_3'
+              });
             }
-          });
-          sfx.playDanger();
-          advanceStage('STAGE_4_PUMP');
+          );
           return;
         }
 
-        const damage = hasColdVest ? 3 : 6;
+        if (isChillerOff) {
+          triggerD20(
+            '냉각이 멈춘 래치 강제 파쇄',
+            'STR',
+            13,
+            strBonus,
+            () => {
+              sfx.playSuccess();
+              advanceStage('STAGE_4_PUMP');
+            },
+            () => {
+              sfx.playDanger();
+              dispatch({
+                type: 'TRIGGER_ENDING',
+                payload: 'BAD_3'
+              });
+            }
+          );
+          return;
+        }
+
         if (settings.easyMode) {
           dispatch({
             type: 'APPLY_NONLETHAL_DAMAGE',
             payload: {
-              amount: damage,
-              log: hasColdVest
-                ? '[이지 모드 · 동결 돌파] 방한 조끼가 한기를 버티게 해줬다. 탈진했지만 문은 열렸다. (HP -3)'
-                : '[이지 모드 · 동결 돌파] 저체온증을 입었지만 문은 열렸다. (HP -6)'
+              amount: 3,
+              log: '[이지 모드 · 동결 돌파] 저체온증을 입었지만 문은 열렸다. (HP -3)'
             }
           });
           sfx.playDanger();
@@ -421,51 +496,44 @@ export function useAquariumGame(sfx, settings) {
           return;
         }
 
-        triggerD20(
-          '결빙 래치 강행 파쇄', 'STR', hasColdVest ? 8 : 10, state.character.key === 'AQUARIST' ? 2 : 0,
-          () => {
-            dispatch({ type: 'APPLY_NONLETHAL_DAMAGE', payload: { amount: damage, log: `[동결 돌파] 무리하게 래치를 파쇄해 탈진했지만 문은 열렸다. (HP -${damage})` } });
-            sfx.playSuccess();
-            advanceStage('STAGE_4_PUMP');
-          },
-          () => { sfx.playDanger(); dispatch({ type: 'TRIGGER_ENDING', payload: 'BAD_3' }); }
-        );
+        sfx.playDanger();
+        dispatch({
+          type: 'TRIGGER_ENDING',
+          payload: 'BAD_3'
+        });
       };
+
+      triggerScreenEffect('cold-flash', 780);
+
       setStory({
         kind: 'SCENE',
         title: '00:18 — 동결 한계',
         tag: '위기 발생',
-
         body: `손가락 끝의 감각이 사라지고, 숨을 들이쉴 때마다 차가운 통증이 폐를 찔렀다.
-토치나 멈춘 냉각기가 있다면 안전하게 열 수 있다. 없다면 한기를 견디며 래치를 강제로 비틀어야 한다.`,
-
+토치로 래치를 녹이거나 냉각기를 멈춰 두었다면 탈출을 시도할 수 있다.`,
         image: {
           src:
             SCENARIOS
               .STAGE_3_FREEZER
               .bg,
-
-          alt:
-            '영하 35도의 급속 냉동고'
+          alt: '영하 35도의 급속 냉동고'
         },
-
-        onAdvance:
-          resolveFrozenDoor
+        onAdvance: resolveFrozenDoor
       });
 
       return;
     }
 
     // -------------------------------------------------------
-    // STAGE 4
+    // STAGE 4 — 펌프실
     // -------------------------------------------------------
-
     if (state.phase === 'STAGE_4_PUMP') {
       sfx.playSuccess();
+      triggerScreenEffect('alarm-blackout', 900);
 
-      advanceStage(
-        'STAGE_5_DOME'
-      );
+      window.setTimeout(() => {
+        advanceStage('STAGE_5_DOME');
+      }, settings.disableEffects ? 0 : 420);
     }
   };
 
@@ -474,97 +542,207 @@ export function useAquariumGame(sfx, settings) {
   // =========================================================
 
   const handleStage5Break = () => {
-    const hasTorch =
-      state.inventory.some(
-        i =>
-          i.id === 'HEATING_TORCH'
-      );
-
-    const hasCrowbar =
-      state.inventory.some(
-        i =>
-          i.id === 'CROWBAR'
-      );
-
-    const hasMask =
-      state.inventory.some(
-        i =>
-          i.id === 'OXYGEN_MASK'
-      );
-
-    const keyCount = [
-      hasTorch,
-      hasCrowbar,
-      hasMask
-    ].filter(Boolean).length;
-
-    let targetDc = 14;
-
-    if (keyCount === 3) {
-      targetDc = 8;
-    } else if (keyCount === 2) {
-      targetDc = 11;
+    if (
+      state.phase !== 'STAGE_5_DOME' ||
+      state.finalStep >= FINAL_ESCAPE_STEPS.length ||
+      state.diceModal.isOpen ||
+      isRolling
+    ) {
+      return;
     }
 
-    const bonus =
-      state.character.key === 'AQUARIST'
+    const step = FINAL_ESCAPE_STEPS[state.finalStep];
+    const prepared = hasFinalStepTool(
+      step,
+      state.inventory,
+      state.character.key
+    );
+
+    const dc = prepared
+      ? step.preparedDc
+      : step.baseDc;
+
+    const specialtyBonus =
+      step.specialties.includes(state.character.key)
         ? 2
         : 0;
 
+    const getDamage = (isNatural1) => {
+      if (step.id === 'VENT') {
+        return isNatural1
+          ? { hpDamage: 6, sanDamage: 3 }
+          : { hpDamage: 3, sanDamage: 2 };
+      }
+
+      if (step.id === 'FRACTURE') {
+        return isNatural1
+          ? { hpDamage: 7, sanDamage: 1 }
+          : { hpDamage: 4, sanDamage: 0 };
+      }
+
+      return isNatural1
+        ? { hpDamage: 8, sanDamage: 3 }
+        : { hpDamage: 5, sanDamage: 2 };
+    };
+
+    const getSuccessText = () => {
+      if (step.id === 'VENT') {
+        return prepared
+          ? '가열된 배출구가 비명을 지르듯 열렸다. 압력계 바늘이 빠르게 떨어지고, 돔을 짓누르던 수압이 조금씩 풀리기 시작했다.'
+          : '맨손에 가까운 조작 끝에 비상 배출구가 가까스로 열렸다. 완전히 안전하지는 않지만, 돔을 깨뜨릴 틈은 생겼다.';
+      }
+
+      if (step.id === 'FRACTURE') {
+        return prepared
+          ? '도구를 균열 사이에 깊숙이 박아 넣었다. 둔탁한 파열음과 함께 아크릴 지지대가 연달아 갈라졌다.'
+          : '몸무게를 실어 몇 번이고 지지대를 내리쳤다. 팔이 저려 왔지만, 마침내 돔에 사람이 빠져나갈 만한 균열이 벌어졌다.';
+      }
+
+      return prepared
+        ? '산소를 확보한 채 분출수의 방향을 읽었다. 거센 물살이 몸을 밀어 올렸고, 깨진 돔 너머의 차가운 빗물이 얼굴에 닿았다.'
+        : '숨이 끊어질 듯한 물살을 버티며 위쪽의 빛만 좇았다. 손끝이 마침내 젖은 지상 바닥을 붙잡았다.';
+    };
+
+    const getFailText = (isNatural1) => {
+      if (step.id === 'VENT') {
+        return isNatural1
+          ? '배출구가 역압을 견디지 못하고 튕겨 나왔다. 금속 파편과 뜨거운 증기가 몸을 후려쳤고, 압력은 충분히 빠지지 않았다.'
+          : '배출구는 절반만 열렸다. 수압은 남아 있고, 다음 파쇄는 훨씬 거칠어질 수밖에 없다.';
+      }
+
+      if (step.id === 'FRACTURE') {
+        return isNatural1
+          ? '파쇄 충격이 그대로 어깨를 타고 올라왔다. 관절이 비틀리는 통증 속에서도 균열만은 간신히 남았다.'
+          : '지지대는 완전히 끊어지지 않았다. 좁은 균열 사이로 물이 폭발적으로 새기 시작했다.';
+      }
+
+      return isNatural1
+        ? '분출수가 몸을 벽으로 내던졌다. 시야가 뒤집히고 마지막 숨이 터져 나왔다.'
+        : '물살이 몇 번이고 몸을 아래로 끌어당겼다. 간신히 지상까지 닿았지만, 온몸의 힘이 거의 남지 않았다.';
+    };
+
+    const finishEnding = (failuresAfter) => {
+      const ending = getFinalEnding({
+        failures: failuresAfter,
+        inventory: state.inventory,
+        characterKey: state.character.key
+      });
+
+      dispatch({
+        type: 'TRIGGER_ENDING',
+        payload: ending
+      });
+    };
+
     triggerD20(
-      '채광 아크릴 돔 파쇄 및 지상 수직 사출',
-      'STR',
-      targetDc,
-      bonus,
+      step.title,
+      step.stat,
+      dc,
+      specialtyBonus,
 
       () => {
-        setIsRolling(true);
+        if (step.id === 'VENT') {
+          sfx.playPressureRelease();
+          triggerScreenEffect('pressure-pulse', 520);
+        } else if (step.id === 'FRACTURE') {
+          sfx.playGlassCrack();
+          triggerScreenEffect('shatter-flash', 620);
+        } else if (step.id === 'ASCENT') {
+          sfx.playWaterRush();
+          triggerScreenEffect('surface-light', 1450);
+        }
 
         dispatch({
-          type: 'SET_BG',
-          payload:
-            SCENARIOS
-              .STAGE_5_DOME
-              .breakBg
+          type: 'RESOLVE_FINAL_STEP',
+          payload: {
+            success: true,
+            log: `[최종 탈출 ${state.finalStep + 1}/3 성공] ${step.title}`
+          }
         });
 
-        sfx.playSuccess();
+        if (step.id === 'FRACTURE') {
+          dispatch({
+            type: 'SET_BG',
+            payload:
+              SCENARIOS
+                .STAGE_5_DOME
+                .breakBg
+          });
+        }
 
-        setTimeout(() => {
-          setIsRolling(false);
+        const isLastStep =
+          state.finalStep === FINAL_ESCAPE_STEPS.length - 1;
 
-          if (keyCount === 3) {
-            dispatch({
-              type: 'TRIGGER_ENDING',
-              payload: 'TRUE'
-            });
-          } else if (keyCount === 2) {
-            dispatch({
-              type: 'TRIGGER_ENDING',
-              payload: 'GOOD'
-            });
-          } else {
-            dispatch({
-              type: 'TRIGGER_ENDING',
-              payload: 'NORMAL'
-            });
-          }
-        }, settings.disableEffects ? 0 : 700);
+        setStory({
+          kind: 'RESULT',
+          title: step.title,
+          tag: '탈출 단계 성공',
+          body: getSuccessText(),
+          onAdvance: isLastStep
+            ? () => finishEnding(state.finalFailures)
+            : undefined
+        });
       },
 
       (rawDice) => {
-        sfx.playDanger();
+        const isNatural1 = rawDice === 1;
+        const failureCount = isNatural1 ? 2 : 1;
+        const damage = getDamage(isNatural1);
 
-        const ending =
-          rawDice === 1 || keyCount <= 1
-            ? 'BAD_4'
-            : keyCount === 2
-              ? 'NORMAL'
-              : 'GOOD';
+        const hpAfter =
+          state.character.hp - damage.hpDamage;
+
+        const sanAfter =
+          state.character.san - damage.sanDamage;
 
         dispatch({
-          type: 'TRIGGER_ENDING',
-          payload: ending
+          type: 'RESOLVE_FINAL_STEP',
+          payload: {
+            success: false,
+            failureCount,
+            ...damage,
+            log: `[최종 탈출 ${state.finalStep + 1}/3 실패] ${step.title}${isNatural1 ? ' · Natural 1' : ''}`
+          }
+        });
+
+        sfx.playDanger();
+
+        if (isNatural1) {
+          triggerScreenEffect('damage-blackout', 820);
+        }
+
+        const isLastStep =
+          state.finalStep === FINAL_ESCAPE_STEPS.length - 1;
+
+        const isFatal =
+          hpAfter <= 0 ||
+          sanAfter <= 0;
+
+        const mustBadEnd =
+          isFatal ||
+          (step.id === 'ASCENT' && isNatural1);
+
+        const failuresAfter =
+          state.finalFailures + failureCount;
+
+        setStory({
+          kind: 'RESULT',
+          title: step.title,
+          tag: isNatural1 ? '치명적 실패' : '탈출 단계 실패',
+          body: getFailText(isNatural1),
+          onAdvance: () => {
+            if (mustBadEnd) {
+              dispatch({
+                type: 'TRIGGER_ENDING',
+                payload: 'BAD_4'
+              });
+              return;
+            }
+
+            if (isLastStep) {
+              finishEnding(failuresAfter);
+            }
+          }
         });
       }
     );
@@ -650,15 +828,6 @@ export function useAquariumGame(sfx, settings) {
         success && point.reward
           ? ITEM_DB[point.reward]
           : null;
-
-      const full =
-        reward &&
-        state.inventory.length >= 5 &&
-        !state.inventory.some(
-          i =>
-            i.id === reward.id
-        );
-
       const showClosingBulkhead =
         state.phase ===
         'STAGE_2_BULKHEAD' &&
@@ -718,21 +887,11 @@ export function useAquariumGame(sfx, settings) {
           point.log
           : point.failLog;
 
-      const resultBody =
-        (baseResult ||
-          '조사를 마쳤다.') +
-        (
-          full
-            ? '\n가방이 가득 차 장비를 챙기지 못했다. 다음 조사 전에 가방을 정리해야 한다.'
-            : ''
-        );
+      const resultBody = baseResult || '조사를 마쳤다.';
 
       // 장비 획득
       // 장면 이미지를 같이 넣지 않는다.
-      if (
-        reward?.img &&
-        !full
-      ) {
+      if (reward?.img) {
         setStory({
           kind: 'REWARD',
           title: point.name,
@@ -792,13 +951,53 @@ export function useAquariumGame(sfx, settings) {
     dc = 9;
   }
 
-  // 보안요원 특권
-  // STAGE 4 방재 장비 보관함: DC 12 → 8
-  if (
-    state.character.key === 'SECURITY' &&
-    id === 'c4_4'
-  ) {
-    dc = 8;
+  // STAGE 4 방재 장비 보관함
+  // 일반: DC 12
+  // 첫 실패 후 재시도: DC 9
+  // 보안요원 특권: 항상 DC 8
+  if (id === 'c4_4') {
+    if (state.character.key === 'SECURITY') {
+      dc = 8;
+    } else if (oxygenLockerRetry) {
+      dc = 9;
+    }
+  }
+
+  // STAGE 4 방재 장비 보관함
+  // 첫 실패는 잠금 구조를 파악한 것으로 처리하고 1회 재시도 허용.
+  // 첫 실패에서는 AP를 소모하거나 조사 완료 처리하지 않는다.
+  if (id === 'c4_4') {
+    triggerD20(
+      point.name,
+      point.checkStat,
+      dc,
+      bonus,
+      () => {
+        setOxygenLockerRetry(false);
+        resolve(true);
+      },
+      () => {
+        if (!oxygenLockerRetry) {
+          setOxygenLockerRetry(true);
+          sfx.playDanger();
+
+          setStory({
+            kind: 'RESULT',
+            title: point.name,
+            tag: '잠금 해제 실패 · 재시도 가능',
+            body: `잠금장치가 뻑뻑하게 걸렸지만, 내부 래치가 걸리는 위치를 확인했다.
+다시 시도한다면 구조를 읽은 덕분에 판정 난이도가 낮아진다. (DC 12 → 9)`
+          });
+
+          return;
+        }
+
+        setOxygenLockerRetry(false);
+        resolve(false);
+      }
+    );
+
+    return;
   }
 
   // STAGE 4 흡입 그릴
@@ -882,6 +1081,8 @@ resolve(true);
     setStory(null);
     setStoryQueue([]);
     setIsRolling(false);
+    setOxygenLockerRetry(false);
+    setScreenEffect(null);
   };
 
   // =========================================================
@@ -930,7 +1131,13 @@ resolve(true);
       '등록 대기',
 
     inventory:
-      state.inventory
+      state.inventory,
+
+    finalStep:
+      state.finalStep,
+
+    finalFailures:
+      state.finalFailures
   };
 
   const dice =
@@ -1009,9 +1216,7 @@ resolve(true);
     diceModal,
 
     activeModalText,
-
-    activeModalText,
-    screenFlash,
+    screenEffect,
 
     endingData:
       state.ending

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { SCENARIOS } from '../../aquariumEngine.js';
+import { SCENARIOS } from '../../data/game/scenarios.js';
 import { SCENE_ASSETS } from '../../data/assetDB.js';
 
 const DESKTOP_QUERY = '(min-width: 1201px) and (min-height: 701px)';

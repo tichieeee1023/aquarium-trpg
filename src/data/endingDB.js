@@ -1,5 +1,28 @@
-import { ENDINGS } from '../aquariumEngine.js';
-export const ENDING_DEFINITIONS = Object.fromEntries(Object.entries(ENDINGS).map(([id, ending]) => [id, { ...ending, id, cardId: id, type: id.startsWith('BAD') ? 'BAD' : id }]));
+import { ENDINGS } from '../game/index.js';
+
+export const ENDING_HINTS = {
+  BAD_1: '푸른 전류가 물 위로 번졌다. 절연 장비도, 열린 퇴로도 없었다면…',
+  BAD_2: '강철문이 닫히기 전, 문틈을 벌리거나 수압을 낮출 방법이 필요했다.',
+  BAD_3: '영하 35도. 얼어붙은 래치를 녹이거나 냉각을 멈출 수 없다면…',
+  BAD_4: '00:30. 마지막 탈출에서 치명적인 실수가 생긴다면, 지상은 눈앞에서 멀어진다.',
+  NORMAL: '살아남는 것과 무사히 살아남는 것은 다르다. 장비가 부족한 채 최종 탈출을 강행하면…',
+  GOOD: '핵심 장비를 대부분 챙기고, 최종 탈출에서 한 번쯤 상처를 감수한다면…',
+  TRUE: '세 단계를 모두 완벽하게. 토치, 빠루, 산소마스크를 끝까지 지켜낸다면…'
+};
+
+export const ENDING_DEFINITIONS = Object.fromEntries(
+  Object.entries(ENDINGS).map(([id, ending]) => [
+    id,
+    {
+      ...ending,
+      id,
+      cardId: id,
+      type: id.startsWith('BAD') ? 'BAD' : id,
+      hint: ENDING_HINTS[id] || ''
+    }
+  ])
+);
+
 export const SECRET_STORY = {
   title: '[기밀 해제] 프로젝트 심해 침식 (Project Abyssal Rift)',
   subtitle: '최종 종합 보고서',

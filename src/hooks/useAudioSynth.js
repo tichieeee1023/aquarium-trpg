@@ -1,4 +1,4 @@
-class SubwayAudioEngine {
+class AquariumAudioEngine {
   constructor() {
     this.ctx = null;
     this.enabled = true;
@@ -176,9 +176,241 @@ class SubwayAudioEngine {
     gain.connect(this.ctx.destination);
     noise.start(now);
   }
+
+  // 8) Natural 20 — 짧은 상승 아르페지오 + 반짝이는 고음
+  playCritical() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const notes = [523.25, 659.25, 783.99, 1046.5, 1318.51];
+
+    notes.forEach((freq, idx) => {
+      const now = this.ctx.currentTime + idx * 0.055;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = idx < 3 ? 'square' : 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+
+      gain.gain.setValueAtTime(idx === 4 ? 0.055 : 0.045, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.3);
+    });
+  }
+
+  // 9) Natural 1 — 낮게 꺼지는 충격음
+  playFumble() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(95, now);
+    osc.frequency.exponentialRampToValueAtTime(28, now + 0.55);
+
+    gain.gain.setValueAtTime(0.11, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.56);
+
+    this.playGlitch();
+  }
+
+  // 10) 강철 격벽이 내려앉는 둔탁한 금속 충격
+  playMetalSlam() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(110, now);
+    osc.frequency.exponentialRampToValueAtTime(38, now + 0.34);
+
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.36);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.38);
+  }
+
+  // 11) 압력 배출 / 증기 분출
+  playPressureRelease() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const duration = 0.72;
+    const bufferSize = Math.floor(this.ctx.sampleRate * duration);
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i += 1) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(1700, now);
+    filter.frequency.exponentialRampToValueAtTime(520, now + duration);
+    filter.Q.value = 0.7;
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.075, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    noise.start(now);
+    noise.stop(now + duration);
+  }
+
+  // 12) 강화 아크릴 파쇄 — 날카로운 크랙 + 저역 충격
+  playGlassCrack() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const freqs = [1800, 1320, 980, 620];
+
+    freqs.forEach((freq, idx) => {
+      const start = now + idx * 0.035;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, start);
+
+      gain.gain.setValueAtTime(0.035, start);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.08);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(start);
+      osc.stop(start + 0.09);
+    });
+
+    const low = this.ctx.createOscillator();
+    const lowGain = this.ctx.createGain();
+
+    low.type = 'triangle';
+    low.frequency.setValueAtTime(100, now + 0.08);
+    low.frequency.exponentialRampToValueAtTime(36, now + 0.45);
+
+    lowGain.gain.setValueAtTime(0.07, now + 0.08);
+    lowGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+    low.connect(lowGain);
+    lowGain.connect(this.ctx.destination);
+
+    low.start(now + 0.08);
+    low.stop(now + 0.46);
+  }
+
+  // 13) 대량의 물이 밀려오는 저역성 노이즈
+  playWaterRush() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const now = this.ctx.currentTime;
+    const duration = 0.9;
+    const bufferSize = Math.floor(this.ctx.sampleRate * duration);
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i += 1) {
+      data[i] = Math.random() * 2 - 1;
+    }
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(900, now);
+    filter.frequency.exponentialRampToValueAtTime(240, now + duration);
+    filter.Q.value = 0.8;
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.085, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    noise.start(now);
+    noise.stop(now + duration);
+  }
+
+  // 14) 전 엔딩 회수 후 홈 복귀용 짧은 16-bit 팡파레
+  playFinalFanfare() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    const melody = [
+      [523.25, 0.00, 0.18],
+      [659.25, 0.13, 0.18],
+      [783.99, 0.26, 0.20],
+      [1046.50, 0.42, 0.28],
+      [783.99, 0.64, 0.14],
+      [1046.50, 0.76, 0.42]
+    ];
+
+    melody.forEach(([freq, offset, length], idx) => {
+      const now = this.ctx.currentTime + offset;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = idx < 3 ? 'square' : 'triangle';
+      osc.frequency.setValueAtTime(freq, now);
+
+      gain.gain.setValueAtTime(0.045, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + length);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + length + 0.02);
+    });
+  }
+
 }
 
-const sfx = new SubwayAudioEngine();
+const sfx = new AquariumAudioEngine();
 
 export function useAudioSynth() {
   return sfx;

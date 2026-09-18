@@ -18,7 +18,7 @@ export default function CharacterSheet({ player, handleUseItem, canUseItems, dis
 
           {/* 소지품 인벤토리 */}
           <InventorySlot player={player} handleUseItem={handleUseItem} canUseItems={canUseItems} highlightedItemIds={highlightedItemIds} />
-          <details><summary className="cursor-pointer text-xs text-neutral-400">가방 정리 · {player.inventory.length}/5칸</summary>{player.inventory.map(item => <button key={item.id} disabled={!canUseItems} onClick={() => discardItem(item.id)} className="block w-full p-2 text-left text-xs text-neutral-300">{item.name} 내려놓기</button>)}</details>
+          <details><summary className="cursor-pointer text-xs text-neutral-400">소지품 정리 · {player.inventory.length}개</summary>{player.inventory.map(item => <button key={item.id} disabled={!canUseItems} onClick={() => discardItem(item.id)} className="block w-full p-2 text-left text-xs text-neutral-300">{item.name} 내려놓기</button>)}</details>
 
         </div>
 

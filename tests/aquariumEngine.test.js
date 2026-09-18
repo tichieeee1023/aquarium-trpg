@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
-import { JOBS, ITEM_DB, SCENARIOS, ENDINGS, initialGameState, gameReducer as reduce } from '../src/aquariumEngine.js';
+import { JOBS, ITEM_DB, SCENARIOS, ENDINGS, initialGameState, gameReducer as reduce } from '../src/game/index.js';
 const start = (key = 'AQUARIST', roll = 10) => reduce(reduce(initialGameState, { type: 'SELECT_CHARACTER', payload: { key, gender: 'F' } }), { type: 'RESOLVE_CONDITION', payload: roll });
 const examine = (state, point) => reduce(state, { type: 'EXAMINE_POINT', payload: { point, rewardItem: ITEM_DB[point.reward], flagKey: point.flag, hpCost: point.hpCost, sanCost: point.sanCost } });
 test('referenced images exist', () => {
@@ -16,17 +16,14 @@ test('condition bonuses fit gauges and fatigue changes DEX', () => {
   assert.equal(lucky.san, 40); assert.equal(lucky.maxSan, 40);
   assert.equal(start('DIVER', 1).character.stats.DEX, 13);
 });
-test('full bag cannot grant equipment and discard frees a slot', () => {
-  let state = { ...start(), phase: 'STAGE_2_BULKHEAD', inventory: [ITEM_DB.TONGS, ITEM_DB.RUBBER_BOOTS, ITEM_DB.LINE_CUTTER, ITEM_DB.PENLIGHT, ITEM_DB.KEY_TAG] };
+test('equipment rewards are kept even after five items', () => {
+  const state = { ...start(), phase: 'STAGE_2_BULKHEAD', inventory: [ITEM_DB.TONGS, ITEM_DB.RUBBER_BOOTS, ITEM_DB.LINE_CUTTER, ITEM_DB.PENLIGHT, ITEM_DB.KEY_TAG] };
   const point = SCENARIOS.STAGE_2_BULKHEAD.points[0];
-  const full = examine(state, point);
-  assert.equal(full.flags.hasCrowbar, false); assert.equal(full.inventory.length, 5);
-  assert.match(full.logs[0], /가방이 가득/);
-  state = reduce(state, { type: 'DISCARD_ITEM', payload: 'TONGS' });
-  state = examine(state, point); assert.equal(state.flags.hasCrowbar, true);
-  state = reduce(state, { type: 'DISCARD_ITEM', payload: 'CROWBAR' }); assert.equal(state.flags.hasCrowbar, false);
-});
-test('cannot repeat examination or spend negative AP', () => {
+  const rewarded = examine(state, point);
+  assert.equal(rewarded.flags.hasCrowbar, true);
+  assert.equal(rewarded.inventory.length, 6);
+  assert.ok(rewarded.inventory.some((item) => item.id === 'CROWBAR'));
+});test('cannot repeat examination or spend negative AP', () => {
   const point = SCENARIOS.STAGE_1_JELLYFISH.points[0]; const once = examine(start(), point);
   assert.equal(examine(once, point), once);
   const empty = { ...start(), ap: 0 }; assert.equal(examine(empty, point), empty);

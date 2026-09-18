@@ -1,4 +1,4 @@
-import { SCENARIOS } from '../../aquariumEngine.js';
+import { SCENARIOS } from '../../data/game/scenarios.js';
 import { ChevronDown } from 'lucide-react';
 
 export default function MiniTracker({ stage }) {
