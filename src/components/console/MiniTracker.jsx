@@ -1,3 +1,4 @@
+import { SCENARIOS } from '../../aquariumEngine.js';
 import { ChevronDown } from 'lucide-react';
 
 export default function MiniTracker({ stage }) {
@@ -8,13 +9,7 @@ export default function MiniTracker({ stage }) {
               <ChevronDown size={13} className="text-cyan-400 transition-transform group-open:rotate-180" />
             </summary>
             <div className="space-y-1.5 text-xs mt-3">
-              {[
-                { id: 'STAGE_1_CAR6', name: 'Stage 1 : 6호차 객차' },
-                { id: 'STAGE_2_TUNNEL', name: 'Stage 2 : 선로 터널 300m' },
-                { id: 'STAGE_3_PLATFORM', name: 'Stage 3 : 신도림 환승역' },
-                { id: 'STAGE_4_MALL', name: 'Stage 4 : 환승 상가' },
-                { id: 'STAGE_5_VENT', name: 'Stage 5 : 환기탑 탈출' },
-              ].map((node) => {
+              {Object.entries(SCENARIOS).map(([id, scene]) => ({ id, name: scene.title })).map((node) => {
                 const isCurrent = stage === node.id;
                 return (
                   <div

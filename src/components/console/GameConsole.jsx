@@ -2,7 +2,7 @@ import MiniTracker from './MiniTracker.jsx';
 import ConsoleLog from './ConsoleLog.jsx';
 import ResponsivePanel from '../layout/ResponsivePanel.jsx';
 
-export default function GameConsole({ stage, logs }) {
+export default function GameConsole({ stage, logs, onSaveLog }) {
   return (
 <aside className="game-console bg-[#0e1118] border-l border-[#1c2333] p-4 flex flex-col justify-between overflow-y-auto">
       <ResponsivePanel title="진행 기록 · 시스템 로그">
@@ -13,6 +13,7 @@ export default function GameConsole({ stage, logs }) {
 
           {/* 시스템 사건 로그 히스토리 */}
           <ConsoleLog logs={logs} />
+          <button onClick={onSaveLog} className="utility-done">기록 저장</button>
 
         </div>
 

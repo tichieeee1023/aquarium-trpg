@@ -4,9 +4,9 @@ import { useTypewriter } from '../../hooks/useTypewriter.js';
 import TypedText from './TypedText.jsx';
 
 const OPENING_LINES = [
-  '나는 00시 37분 막차에 올랐다. 비가 내리는 신도림역. 오늘도 평소와 다르지 않은 퇴근이었다.',
-  '치익— 펑! 숨 막히는 적막 속 6호차. 갑자기 닫힌 문 너머로 열차가 비정상적인 굉음을 내며 지하 깊숙이 곤두박질쳤다.',
-  '콰앙—! 귀를 찢는 급제동과 함께 객실 조명이 일제히 파열되었다. 칠흑 같은 암전이 찾아왔다.',
+  '23시 45분. 갑자기 비어 버린 당직표 끝에 내 이름이 남았다. 오늘도 마감 뒤 한 시간만 더 버티면 된다.',
+  '낮에는 사람들로 가득하던 통로가 문을 닫자 거짓말처럼 비었다. 나는 초대형 수조 앞에 멈춰 섰다.',
+  '푸른 물속을 천천히 가로지르는 그림자를 바라보다가, 이유 없이 등이 서늘해졌다. 수조 안쪽에서 나를 먼저 보고 있는 것 같은 기분이 들었다.'
 ];
 
 export default function OpeningSequence({ onComplete, onSkip }) {
@@ -19,11 +19,11 @@ export default function OpeningSequence({ onComplete, onSkip }) {
     else onComplete();
   };
   return <main className="opening-screen" aria-labelledby="opening-title">
-    <img className="opening-image" src={SCENE_ASSETS.PROLOGUE_TRAIN.src} alt={SCENE_ASSETS.PROLOGUE_TRAIN.alt} />
+    <img className="opening-image" src={SCENE_ASSETS.INTRO.src} alt={SCENE_ASSETS.INTRO.alt} />
     <div className="opening-shade" aria-hidden="true" />
     <section className="opening-copy">
-      <div className="opening-label">PROLOGUE · 00:37 AM · CAR 6</div>
-      <h2 id="opening-title">막차</h2>
+      <div className="opening-label">PROLOGUE · 23:45 · AQUARIUM</div>
+      <h2 id="opening-title">야간 당직</h2>
       <p><TypedText text={line} count={count} /></p>
       <div className="opening-actions">
         <button className="opening-next" onClick={advance}>{!done ? '텍스트 바로 보기' : step === OPENING_LINES.length - 1 ? '돌발 퀘스트 시작' : '> 다음'}</button>

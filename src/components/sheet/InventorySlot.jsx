@@ -16,7 +16,7 @@ export default function InventorySlot({ player, handleUseItem, canUseItems }) {
                   {item.consumable && <button className="p-2 bg-[#20323a] text-cyan-200" disabled={!canUseItems || (item.hpRestore ? player.hp >= player.maxHp : player.san >= player.maxSan)} onClick={() => handleUseItem(item.id)}>사용</button>}
                 </div>
               ))}
-              {Array.from({ length: Math.max(0, 4 - player.inventory.length) }).map((_, i) => (
+              {Array.from({ length: Math.max(0, 5 - player.inventory.length) }).map((_, i) => (
                 <div key={`empty-${i}`} className="h-14 rounded-lg border border-dashed border-neutral-900 flex items-center justify-center text-neutral-700 text-xs">
                   EMPTY
                 </div>

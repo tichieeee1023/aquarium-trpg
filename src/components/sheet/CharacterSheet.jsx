@@ -4,7 +4,7 @@ import InventorySlot from './InventorySlot.jsx';
 import GameFooter from '../layout/GameFooter.jsx';
 import ResponsivePanel from '../layout/ResponsivePanel.jsx';
 
-export default function CharacterSheet({ player, handleUseItem, canUseItems }) {
+export default function CharacterSheet({ player, handleUseItem, canUseItems, discardItem }) {
   return (
 <aside className="character-sheet bg-[#0e1118] border-r border-[#1c2333] p-4 flex flex-col justify-between overflow-y-auto">
       <ResponsivePanel title="캐릭터 · 능력치 · 소지품">
@@ -18,6 +18,7 @@ export default function CharacterSheet({ player, handleUseItem, canUseItems }) {
 
           {/* 소지품 인벤토리 */}
           <InventorySlot player={player} handleUseItem={handleUseItem} canUseItems={canUseItems} />
+          <details><summary className="cursor-pointer text-xs text-neutral-400">가방 정리 · {player.inventory.length}/5칸</summary>{player.inventory.map(item => <button key={item.id} disabled={!canUseItems} onClick={() => discardItem(item.id)} className="block w-full p-2 text-left text-xs text-neutral-300">{item.name} 내려놓기</button>)}</details>
 
         </div>
 

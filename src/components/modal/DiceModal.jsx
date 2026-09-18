@@ -1,4 +1,4 @@
-import { ITEM_DATABASE } from '../../data/itemDB.js';
+import { DICE_ASSETS } from '../../data/assetDB.js';
 import { useEffect } from 'react';
 import ModalLayer from './ModalLayer.jsx';
 import DiceCanvas from './DiceCanvas.jsx';
@@ -12,16 +12,16 @@ export default function DiceModal({ diceModal, player, rollD20Check, confirmDice
     return () => window.removeEventListener('keydown', handleKey);
   }, [diceModal.isOpen, dismissDice]);
   const diceItem = diceModal.rolling
-    ? ITEM_DATABASE.DICE_ROLL
+    ? DICE_ASSETS.rolling
     : diceModal.result?.isNat20
-      ? ITEM_DATABASE.DICE_CRIT_WIN
+      ? DICE_ASSETS.criticalSuccess
       : diceModal.result?.isNat1
-        ? ITEM_DATABASE.DICE_CRIT_LOSE
+        ? DICE_ASSETS.criticalFailure
         : diceModal.result?.isSuccess
-          ? ITEM_DATABASE.DICE_SUCCESS
+          ? DICE_ASSETS.success
           : diceModal.result
-            ? ITEM_DATABASE.DICE_FAIL
-            : ITEM_DATABASE.DICE_IDLE;
+            ? DICE_ASSETS.failure
+            : DICE_ASSETS.idle;
   return (
 diceModal.isOpen && (
     <ModalLayer>

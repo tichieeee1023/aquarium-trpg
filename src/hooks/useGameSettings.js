@@ -1,6 +1,6 @@
 import { useLayoutEffect, useState } from 'react';
 
-const key = 'subway-settings-v1';
+const key = 'aquarium-settings-v1';
 export function useGameSettings() {
   const [settings, setSettings] = useState(() => {
     try {

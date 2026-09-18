@@ -1,23 +1,37 @@
-import { SCENARIO_TEXT } from './scenarioDB.js';
-
-export const ENDING_DEFINITIONS = {
-  BAD_1: { id: 'BAD_1', type: 'BAD', cardId: 'BAD_1', title: SCENARIO_TEXT.text_25, desc: SCENARIO_TEXT.text_26 },
-  BAD_2: { id: 'BAD_2', type: 'BAD', cardId: 'BAD_2', title: SCENARIO_TEXT.text_75, desc: SCENARIO_TEXT.text_76 },
-  BAD_3: { id: 'BAD_3', type: 'BAD', cardId: 'BAD_3', title: SCENARIO_TEXT.text_129, desc: SCENARIO_TEXT.text_130 },
-  NORMAL: { id: 'NORMAL', type: 'NORMAL', cardId: 'NORMAL', title: SCENARIO_TEXT.text_124, desc: SCENARIO_TEXT.text_125 },
-  GOOD: { id: 'GOOD', type: 'GOOD', cardId: 'GOOD', title: 'GOOD END : 새벽의 생존 보고서', desc: '상처투성이의 몸으로 도로변에 주저앉았다. 쏟아지는 사이렌 소리와 함께 119 대원이 은박 보온 담요를 둘러준다.\n\n손에 쥔 스패너와 도구들만이 지하의 진실을 증명하고 있다. 떨리는 손으로 생존 보고서를 썼다. 그곳에서 있었던 일을, 누군가는 기억해야 한다.' },
-  TRUE: { id: 'TRUE', type: 'TRUE', cardId: 'TRUE', title: SCENARIO_TEXT.text_122, desc: SCENARIO_TEXT.text_123 },
-};
-
+import { ENDINGS } from '../aquariumEngine.js';
+export const ENDING_DEFINITIONS = Object.fromEntries(Object.entries(ENDINGS).map(([id, ending]) => [id, { ...ending, id, cardId: id, type: id.startsWith('BAD') ? 'BAD' : id }]));
 export const SECRET_STORY = {
-  title: '04:44 AM — 폐쇄회로 밖의 기록',
-  subtitle: '수도권 광역철도 비상대책본부 · 기밀 해제',
-  content: '6호선 막차의 통신 두절은 단순 정전이 아니었다.\n\n역사 환기탑 심도 45미터에서 발견된 유기물 점막은 인간의 배양 세포가 거대화된 의태성 유기 복합체로 판명되었다. 이 개체는 실험실에서 유출된 뒤 폐쇄된 지하 수로를 따라 이동했고, 잔류 승객의 공포와 스트레스를 먹으며 역사 구조물 전체를 거대한 소화관으로 바꾸고 있었다.\n\n00:37 AM의 정전은 사고가 아니라 격리 작전이었다. 관제실은 이미 여러 차례 비정상 전력 소모와 승객 실종 신고를 받았지만, 막차가 역사 안으로 들어선 뒤에야 모든 출입문과 통신 회선을 차단했다. 구조 신호로 들리던 안내방송은 생존자를 찾기 위한 방송이 아니라, 개체의 반응을 기록하기 위한 자동 음성이었다.\n\n당신이 들고 나온 산성액에 녹아내린 비상 스패너, 의태체 체액 바이알, 그리고 진술서는 작전 실패를 증명하는 유일한 물증이 되었다. 그날 밤 지하에서 살아 나온 사람은 공식 기록상 존재하지 않는다. 다음 날 첫차 운행은 평소처럼 재개되었고, 6호차의 빈 좌석과 닫힌 문은 정비 불량으로 처리되었다.\n\n그러나 보고서 마지막 장에는 폐기 지시와 다른 필체의 메모가 덧붙어 있다.\n\n“지하철 계통의 개체는 소각 완료. 본체는 확인되지 않음. 한강 하류 수질 관측망에서 동일한 점액 성분이 검출되었고, 인근 대형 수조 시설의 순환 펌프가 새벽마다 37초씩 멈춘다. 관련 기관에는 아직 통보하지 말 것.”\n\n종이 모서리에는 해양 생물 전시관의 단체 관람 전단지 한 장이 클립으로 고정되어 있다. 날짜는 다음 주 토요일.\n\n04:44:12 AM. 폐쇄회로 밖에서도, 침식은 끝나지 않았다.',
-};
+  title: '[기밀 해제] 프로젝트 심해 침식 (Project Abyssal Rift)',
+  subtitle: '최종 종합 보고서',
+  content: `문서 분류: 비인가 열람 절대 불가 (EYES ONLY / LEVEL 5)
+파일 번호: AR-SUB-AQUA-0918
+담당 부서: 광역 지하 인프라 특수 재난 감사 위원회 (The Deep Grid Consortium)
 
-export function getEscapeEnding(player) {
-  if (player.hp <= 0 || player.san <= 0) return 'BAD_3';
-  if (player.hp >= 12 && player.san >= 8) return 'TRUE';
-  if (player.hp >= 8 && player.san >= 5) return 'GOOD';
-  return 'NORMAL';
-}
+1. 제1차 사건: 00:37 AM — 심야 지하철 6호선 터널 암전 참사
+
+대외 발표: 노후 전력 케이블 합선에 의한 순간 단전 및 가스 누출
+
+실제 전말:
+지하 최심부 관통 공사 도중 한강 하저 암반 단층선이 파열되며, 지각 밑바닥에 유폐되어 있던 고압 환경 기원의 미확인 유기 물질(Abyssal Slime)이 선로 갱도로 유출되었다.
+주변 사물과 사람의 형태를 점막으로 모방하는 이 유기체는 열차 칸과 환승역 승강장 전체를 의태하여 잔류 인원들을 집어삼켰다. 사건은 방재팀이 환기 갱도를 폭파하고 화학 소화 약제를 대량 투입하면서 현장 격리된 것으로 처리되었다.
+
+2. 제2차 사건: 23:45 PM — 도심 초특급 메인 아쿠아리움 붕괴 사태
+
+전이 경로:
+지하철 갱도 폭파 당시 사멸하지 않은 잔존 포자 덩어리가 지하 오수 유입관과 냉각 배관망을 따라 이동했다. 이 포자군은 심야 정수 주기에 맞춰 가동되던 도심 복합 단지의 대형 해수 순환 배관으로 흡착되었다.
+
+실제 전말:
+염분과 차가운 해수를 공급받은 유기체는 급격한 화학적 폭주 반응을 일으켰다. 수조의 강화 아크릴 접합부를 부식시키고 전력 제어 콘솔을 감전 마비시켰으며, 사료 급속 냉동창고의 방열 격벽을 강제 결빙 봉쇄하여 시설 잔류자들을 고립시켰다.
+
+3. 최종 결론 및 사후 조치
+
+새벽의 비 내리는 도로 위로 맨홀 뚜껑을 밀치고 기어 나왔던 지하철의 생존자.
+
+그리고 한밤중 아크릴 돔을 깨뜨리고 간헐천 물기둥과 함께 지상 광장으로 사출되었던 아쿠아리움의 생존자.
+
+두 사건은 별개의 시설 고장이 아니다. 도심 콘크리트 바닥 아래, 닫혀 있던 가장 깊은 지각의 틈새에서 차올라 인간의 일상을 집어삼키려 했던 ‘심해의 침식’이었다.
+
+[STATUS: ARCHIVED]
+- 전 구역 지하 배관망 콘크리트 영구 매립 완료.
+- 생환자 민간 증언 영구 은폐 조치.`
+};

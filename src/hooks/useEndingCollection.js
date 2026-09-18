@@ -2,7 +2,7 @@ import { useEffect, useSyncExternalStore } from 'react';
 import { ENDING_STORAGE_KEY, parseEndingCollection } from '../utils/endingCollection.js';
 import { ENDING_DEFINITIONS } from '../data/endingDB.js';
 
-const eventName = 'subway-ending-collected';
+const eventName = 'aquarium-ending-collected';
 const read = () => { try { return localStorage.getItem(ENDING_STORAGE_KEY) ?? '[]'; } catch { return '[]'; } };
 let session = '[]';
 const snapshot = () => {

@@ -1,12 +1,9 @@
 import { useCallback, useEffect } from 'react';
 import ModalLayer from '../modal/ModalLayer.jsx';
-import { useTypewriter } from '../../hooks/useTypewriter.js';
-import TypedText from './TypedText.jsx';
 
 export default function StoryDisplay({ activeModalText, onAdvance }) {
   const text = activeModalText?.body ?? '';
-  const { count, done, finish } = useTypewriter(text);
-  const advance = useCallback(() => { if (!done) finish(); else onAdvance(); }, [done, finish, onAdvance]);
+  const advance = useCallback(() => onAdvance(), [onAdvance]);
   useEffect(() => {
     if (!activeModalText) return;
     const handleKey = (event) => { if (event.key === 'Escape') advance(); };
@@ -44,11 +41,10 @@ activeModalText && (
             </div>
           )}
           <p className="text-sm text-neutral-300 leading-relaxed font-serif whitespace-pre-line">
-            <TypedText text={text} count={count} />
+            {text}
           </p>
           <button
             onClick={advance}
-            data-typing={done ? 'complete' : 'typing'}
             className="w-full py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-100 font-bold text-xs transition cursor-pointer"
           >
             &gt;다음

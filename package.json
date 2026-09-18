@@ -1,5 +1,5 @@
 {
-  "name": "subway-trpg",
+  "name": "aquarium-trpg",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "test": "node --test tests/*.test.js",
+    "test": "node --test tests/aquariumEngine.test.js",
     "optimize:images": "node tools/convert-assets-to-webp.mjs",
     "preview": "vite preview"
   },

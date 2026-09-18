@@ -1,6 +1,6 @@
 import { ENDING_DEFINITIONS } from '../data/endingDB.js';
 
-export const ENDING_STORAGE_KEY = 'subway_0037_endings';
+export const ENDING_STORAGE_KEY = 'aquarium_2345_endings';
 export function parseEndingCollection(raw) {
   try {
     const value = JSON.parse(raw);

@@ -11,7 +11,7 @@ stage === 'SURVEY' && (
           <div className="space-y-4 my-auto">
             <div className="border-l-4 border-amber-500 pl-3 py-1">
               <div className="text-[10px] font-mono text-amber-400 uppercase tracking-widest">[ 돌발 퀘스트 : 캐릭터 생성 ]</div>
-              <h2 className="text-lg font-bold text-neutral-100">막차에 오른 당신은 누구입니까?</h2>
+              <h2 className="text-lg font-bold text-neutral-100">야간 당직에 남은 당신은 누구입니까?</h2>
             </div>
             <p className="text-xs text-neutral-400 leading-relaxed">
               직무에 따라 능력치와 시작 소지품이 달라집니다. 이 밤을 함께 버틸 인물을 선택하십시오.
@@ -43,10 +43,10 @@ stage === 'SURVEY' && (
                 </button>
               ))}
             </div>
-            {preview && <DialogFrame title="탑승 전 사원증 확인" onClose={closePreview}>
+            {preview && <DialogFrame title="당직 전 사원증 확인" onClose={closePreview}>
               <div className="character-preview"><img src={preview.arch.portraits[preview.gender]} alt={preview.arch.title} /><div><h3>{preview.arch.title}</h3><p>{preview.arch.quote}</p><dl>{Object.entries(preview.arch.stats).map(([stat, value]) => <div key={stat}><dt>{stat}</dt><dd>{value}</dd></div>)}</dl></div></div>
               <h3>시작 소지품</h3><ul className="preview-items">{preview.arch.items.map((item) => <li key={item.id} className="preview-item-tag">{item.name}</li>)}</ul>
-              <button className="utility-done" onClick={() => { const selected = preview; closePreview(); handleSelectArchetype(selected.arch, selected.gender); }}>이 사원증으로 탑승</button><button className="utility-done" onClick={closePreview}>다시 선택</button>
+              <button className="utility-done" onClick={() => { const selected = preview; closePreview(); handleSelectArchetype(selected.arch, selected.gender); }}>이 사원증으로 당직 시작</button><button className="utility-done" onClick={closePreview}>다시 선택</button>
             </DialogFrame>}
           </div>
         )
