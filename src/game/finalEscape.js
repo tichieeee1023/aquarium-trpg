@@ -1,8 +1,8 @@
 export const FINAL_ESCAPE_STEPS = [
   {
     id: 'VENT',
-    title: '1. 압력 배출구 개방',
-    description: '돔 아래 비상 배출구를 열어 내부 수압을 낮춘다.',
+    title: '1. 돔 아래 압력 배출구',
+    description: '비상 밸브를 열어 돔을 짓누르는 수압을 빼낸다. 잠금쇠가 풀리는 순간, 틈새로 물이 먼저 비명을 지르며 샌다.',
     stat: 'INT',
     itemId: 'HEATING_TORCH',
     itemName: '가스 토치',
@@ -12,8 +12,8 @@ export const FINAL_ESCAPE_STEPS = [
   },
   {
     id: 'FRACTURE',
-    title: '2. 아크릴 지지대 파쇄',
-    description: '압력이 빠진 틈에 빠루를 걸어 돔의 균열을 넓힌다.',
+    title: '2. 아크릴 균열 벌리기',
+    description: '금이 간 지지대에 힘을 실어 아크릴 돔을 무너뜨린다. 밀어붙일 때마다 하얀 균열이 번지고, 돔 전체가 낮게 울기 시작한다.',
     stat: 'STR',
     itemId: 'CROWBAR',
     itemName: '단조 빠루',
@@ -25,8 +25,8 @@ export const FINAL_ESCAPE_STEPS = [
   },
   {
     id: 'ASCENT',
-    title: '3. 분출수 속 지상 탈출',
-    description: '무너지는 돔과 분출수 사이를 버티며 지상으로 빠져나간다.',
+    title: '3. 분출수를 뚫고 지상으로',
+    description: '돔이 무너지는 순간 물기둥이 몸을 밀어 올린다. 파편과 물살에 휩쓸리지 않도록 마지막 힘으로 수면을 향해 몸을 던진다.',
     stat: 'DEX',
     itemId: 'OXYGEN_MASK',
     itemName: '산소마스크',

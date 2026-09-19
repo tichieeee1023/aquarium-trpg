@@ -37,5 +37,5 @@ export const initialGameState = {
   ending: null,
   finalStep: 0,
   finalFailures: 0,
-  logs: ['23:45. 아쿠아리움 지하 통로 쪽에서 희미한 침수 경보가 울렸다.']
+  logs: ['23:45. 발목을 적시는 물소리 사이로 지하 통로의 침수 경보가 울렸다.']
 };

@@ -139,7 +139,13 @@ export function gameReducer(state, action) {
       return {
         ...state,
         phase: nextHp === 0 || nextSan === 0 ? 'ENDING' : state.phase,
-        ending: nextHp === 0 || nextSan === 0 ? { ...ENDINGS.BAD_4, title: nextHp === 0 ? '침수 속에서 꺼진 생명' : '심해에 삼켜진 정신', desc: '누적된 피해가 겹치자 더는 탈출을 이어갈 수 없었다.' } : state.ending,
+        ending: nextHp === 0 || nextSan === 0 ? {
+          ...ENDINGS.BAD_4,
+          title: nextHp === 0 ? '침수 속에서 꺼진 생명' : '심해에 삼켜진 정신',
+          desc: nextHp === 0
+            ? '몸에 쌓인 충격이 한꺼번에 밀려왔다. 무릎이 꺾이고, 손끝에서 감각이 멀어졌다. 눈앞의 경고등이 물결처럼 번졌다.'
+            : '경보음과 펌프 소리가 한데 뒤엉켰다. 출구의 불빛과 수조의 푸른빛을 구분할 수 없었다. 더는 어느 쪽으로 가야 하는지 알 수 없었다.'
+        } : state.ending,
         ap: nextAp,
         inventory: nextInv,
         flags: nextFlags,
