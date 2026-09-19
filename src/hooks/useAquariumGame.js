@@ -7,6 +7,7 @@ import {
 } from '../game/index.js';
 import { NEXT_STAGE, createStageIntroStory, getStageTransitionStory } from '../game/stageFlow.js';
 import { FINAL_ESCAPE_STEPS, getFinalEnding, getFinalStepCheck } from '../game/finalEscape.js';
+import { getEndingJobEpilogue } from '../data/endingJobEpilogues.js';
 
 
 export function useAquariumGame(sfx, settings) {
@@ -1362,6 +1363,11 @@ resolve(true);
       state.ending
         ? {
           ...state.ending,
+
+          jobEpilogue: getEndingJobEpilogue(
+            state.character?.key,
+            state.ending.type
+          ),
 
           id:
             state.ending.type,

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { existsSync } from 'node:fs';
 import { JOBS, ITEM_DB, SCENARIOS, ENDINGS, initialGameState, gameReducer as reduce, getFinalEnding } from '../src/game/index.js';
 import { FINAL_ESCAPE_STEPS, getFinalStepCheck } from '../src/game/finalEscape.js';
+import { getEndingJobEpilogue } from '../src/data/endingJobEpilogues.js';
 const start = (key = 'AQUARIST', roll = 10) => reduce(reduce(initialGameState, { type: 'SELECT_CHARACTER', payload: { key, gender: 'F' } }), { type: 'RESOLVE_CONDITION', payload: roll });
 const examine = (state, point) => reduce(state, { type: 'EXAMINE_POINT', payload: { point, rewardItem: ITEM_DB[point.reward], flagKey: point.flag, hpCost: point.hpCost, sanCost: point.sanCost } });
 test('referenced images exist', () => {
@@ -83,4 +84,13 @@ test('key tag makes the oxygen locker investigation succeed without a die roll',
   const resolved = examine(state, point);
   assert.equal(resolved.inventory.some((item) => item.id === 'OXYGEN_MASK'), true);
   assert.equal(resolved.flags.hasOxygenMask, true);
+});
+test('every ending has a distinct epilogue for every job', () => {
+  const jobKeys = Object.keys(JOBS);
+  const epilogues = Object.keys(ENDINGS).flatMap(endingType =>
+    jobKeys.map(jobKey => getEndingJobEpilogue(jobKey, endingType))
+  );
+  assert.equal(epilogues.length, 28);
+  assert.equal(epilogues.every(Boolean), true);
+  assert.equal(new Set(epilogues).size, epilogues.length);
 });
