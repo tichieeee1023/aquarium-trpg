@@ -1940,6 +1940,8 @@ button:disabled { cursor: not-allowed; }
   }
 
   .completion-footer {
+    flex-direction: column;
+    align-items: stretch;
     gap: 8px;
     padding-top: 8px;
   }
@@ -1950,16 +1952,23 @@ button:disabled { cursor: not-allowed; }
   }
 
   .completion-signoff {
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;
     gap: 4px;
   }
 
   .completion-signoff span {
     font-size: 0.57rem;
     letter-spacing: 0.09em;
+    white-space: nowrap;
   }
 
   .completion-signoff strong {
     font-size: 0.82rem;
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
 }
 

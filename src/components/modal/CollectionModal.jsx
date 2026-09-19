@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import DialogFrame from './DialogFrame.jsx';
 import {
   ENDING_DEFINITIONS,
@@ -13,7 +13,8 @@ import TypedText from '../narrative/TypedText.jsx';
 
 function SecretReport({
   onBack,
-  onReturnHome
+  onReturnHome,
+  reportRef
 }) {
   const {
     count,
@@ -24,7 +25,7 @@ function SecretReport({
   );
 
   return (
-    <div className="secret-report">
+    <div ref={reportRef} className="secret-report">
       <img
         src={
           SCENE_ASSETS
@@ -88,6 +89,13 @@ export default function CollectionModal({
 }) {
   const [secret, setSecret] =
     useState(false);
+  const secretReportRef = useRef(null);
+
+  useLayoutEffect(() => {
+    if (!secret) return;
+    const dialog = secretReportRef.current?.closest('[role="dialog"]');
+    if (dialog) dialog.scrollTop = 0;
+  }, [secret]);
 
   const complete =
     Object.keys(
@@ -108,6 +116,7 @@ export default function CollectionModal({
     >
       {secret ? (
         <SecretReport
+          reportRef={secretReportRef}
           onBack={() =>
             setSecret(false)
           }

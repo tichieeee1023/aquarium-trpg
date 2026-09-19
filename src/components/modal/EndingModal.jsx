@@ -40,8 +40,7 @@ export default function EndingModal({ stage, endingData, handleRestart, onCollec
           <details className="ending-credits">
             <summary>ENDING CREDITS</summary>
             <p>23:45 — 아쿠아리움: 심해의 균열</p>
-            <dl><dt>게임 구현</dt><dd>React · Vite · Canvas</dd><dt>판정 시스템</dt><dd>D20 Survival TRPG</dd><dt>이야기 서체</dt><dd>둥근모꼴+Fixedsys · 길형진 / CACTUS</dd></dl>
-            <p className="credits-thanks">지상으로 돌아오는 순간까지 함께해 주셔서 감사합니다.</p>
+            <dl><dt>기획 · 개발</dt><dd>Lee YJ</dd><dt>게임 구현</dt><dd>React · Vite · Canvas</dd><dt>판정 시스템</dt><dd>D20 Survival TRPG</dd><dt>이야기 서체</dt><dd>둥근모꼴+Fixedsys · 길형진 / CACTUS</dd></dl>
           </details>
         </section>
       </div>}
