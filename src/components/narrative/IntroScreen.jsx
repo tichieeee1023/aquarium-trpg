@@ -92,6 +92,17 @@ export default function IntroScreen({
         <div className="intro-hint">
           D20 주사위 · 도구 수집 · 일곱 개의 결말
         </div>
+
+        <a
+          className="related-game-link"
+          href="https://subway-trpg.vercel.app/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <span>UNREGISTERED SIGNAL</span>
+          <strong>00:37 · 심야 서브웨이</strong>
+          <i aria-hidden="true">↗</i>
+        </a>
       </section>
     </main>
   );
