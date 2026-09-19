@@ -43,6 +43,9 @@ export default function App() {
   const [showIntro, setShowIntro] =
     useState(true);
 
+  const [hasActiveRun, setHasActiveRun] =
+    useState(false);
+
   const [showOpening, setShowOpening] =
     useState(false);
 
@@ -199,6 +202,21 @@ export default function App() {
   const restart = () => {
     game.handleRestart();
 
+    setHasActiveRun(false);
+    setShowOpening(false);
+    setShowIntro(true);
+  };
+
+  const replayFromSettings = () => {
+    game.handleRestart();
+    setHasActiveRun(false);
+    setUtility(null);
+    setShowOpening(false);
+    setShowIntro(true);
+  };
+
+  const returnHome = () => {
+    setUtility(null);
     setShowOpening(false);
     setShowIntro(true);
   };
@@ -212,6 +230,7 @@ export default function App() {
 
     game.handleRestart();
 
+    setHasActiveRun(false);
     setShowOpening(false);
     setShowIntro(true);
     setCelebrationActive(true);
@@ -261,12 +280,19 @@ export default function App() {
           onStart={() => {
             sfx.playClick();
 
+            setHasActiveRun(true);
             setShowIntro(false);
 
             setShowOpening(
               !hasSeenOpening
             );
           }}
+          onContinue={() => {
+            sfx.playClick();
+            setShowOpening(false);
+            setShowIntro(false);
+          }}
+          hasActiveRun={hasActiveRun}
           onSettings={() =>
             setUtility(
               'settings'
@@ -491,6 +517,9 @@ export default function App() {
           updateSettings={updateSettings}
           onCredits={() => setUtility('credits')}
           onClose={closeUtility}
+          canReplay={hasActiveRun && game.stage !== 'ENDING'}
+          onReplay={replayFromSettings}
+          onHome={returnHome}
         />
       ) : null}
     </MainLayout>

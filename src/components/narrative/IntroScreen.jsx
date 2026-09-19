@@ -4,6 +4,8 @@ import CompletionCelebration from './CompletionCelebration.jsx';
 
 export default function IntroScreen({
   onStart,
+  onContinue,
+  hasActiveRun,
   onSettings,
   onHelp,
   onCollection,
@@ -48,10 +50,10 @@ export default function IntroScreen({
 
         <div className="intro-actions">
           <button
-            onClick={onStart}
+            onClick={hasActiveRun ? onContinue : onStart}
             className="bg-amber-300 text-neutral-950 font-bold cursor-pointer"
           >
-            게임 시작
+            {hasActiveRun ? '이어하기' : '게임 시작'}
           </button>
 
           <button
