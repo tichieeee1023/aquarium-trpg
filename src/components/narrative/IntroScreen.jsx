@@ -1,4 +1,5 @@
 import { SCENE_ASSETS } from '../../data/assetDB.js';
+import { CircleHelp, Settings2 } from 'lucide-react';
 import CompletionCelebration from './CompletionCelebration.jsx';
 
 export default function IntroScreen({
@@ -57,14 +58,16 @@ export default function IntroScreen({
             onClick={onSettings}
             className="bg-neutral-900 text-neutral-100 cursor-pointer"
           >
-            설정
+            <Settings2 size={17} strokeWidth={1.8} aria-hidden="true" />
+            <span>설정</span>
           </button>
 
           <button
             onClick={onHelp}
             className="bg-neutral-900 text-neutral-100 cursor-pointer"
           >
-            도움말
+            <CircleHelp size={17} strokeWidth={1.8} aria-hidden="true" />
+            <span>도움말</span>
           </button>
 
           <button
@@ -82,7 +85,7 @@ export default function IntroScreen({
             }`}
           >
             {collectionComplete
-              ? '✦ 엔딩 도감 · 7/7'
+              ? '엔딩 도감'
               : collectionUnlocked
                 ? '엔딩 도감'
                 : '엔딩 도감 · 잠김'}

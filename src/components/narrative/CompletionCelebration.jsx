@@ -179,9 +179,27 @@ export default function CompletionCelebration({
 
       <section className="completion-terminal">
         <header className="completion-header">
-          <span>ARCHIVE STATUS</span>
-          <strong>COMPLETE</strong>
+          <span>AQUARIUM // ARCHIVE COMPLETE</span>
+          <strong>07 / 07</strong>
         </header>
+
+        <figure className="completion-visual">
+          <img
+            className="completion-art"
+            src="/assets/scenes/completion-aquarium.webp"
+            alt="새벽빛이 비치는 아쿠아리움과 바다를 바라보는 생존자"
+          />
+          <figcaption>00:35 AM · EXIT ROUTE SECURED</figcaption>
+        </figure>
+
+        <div className="completion-thanks">
+          <h2>THANK YOU FOR PLAYING</h2>
+          <h3>아쿠아리움: 심해의 균열</h3>
+          <p className="completion-copy">
+            7개의 결말과 마지막 기록까지 확인해 주셔서 감사합니다.
+            <br />당신은 깊은 밤의 균열을 지나, 무사히 돌아왔습니다.
+          </p>
+        </div>
 
         <div className="completion-score">
           <span>ALL ENDINGS</span>
