@@ -248,7 +248,7 @@ export function useAquariumGame(sfx, settings) {
           state.inventory.some(item => item.id === 'WETSUIT');
 
         if (hasSafeRoute) {
-          sfx.playSuccess();
+          sfx.playStageTransition();
           advanceStage('STAGE_2_BULKHEAD');
           return;
         }
@@ -345,7 +345,7 @@ export function useAquariumGame(sfx, settings) {
             10,
             strBonus,
             () => {
-              sfx.playSuccess();
+              sfx.playStageTransition();
               advanceStage('STAGE_3_FREEZER');
             },
             () => {
@@ -366,7 +366,7 @@ export function useAquariumGame(sfx, settings) {
             12,
             0,
             () => {
-              sfx.playSuccess();
+              sfx.playStageTransition();
               advanceStage('STAGE_3_FREEZER');
             },
             () => {
@@ -448,7 +448,7 @@ export function useAquariumGame(sfx, settings) {
             8,
             0,
             () => {
-              sfx.playSuccess();
+              sfx.playStageTransition();
               advanceStage('STAGE_4_PUMP');
             },
             () => {
@@ -469,7 +469,7 @@ export function useAquariumGame(sfx, settings) {
             13,
             strBonus,
             () => {
-              sfx.playSuccess();
+              sfx.playStageTransition();
               advanceStage('STAGE_4_PUMP');
             },
             () => {
@@ -528,7 +528,7 @@ export function useAquariumGame(sfx, settings) {
     // STAGE 4 — 펌프실
     // -------------------------------------------------------
     if (state.phase === 'STAGE_4_PUMP') {
-      sfx.playSuccess();
+      sfx.playStageTransition();
       triggerScreenEffect('alarm-blackout', 900);
 
       window.setTimeout(() => {

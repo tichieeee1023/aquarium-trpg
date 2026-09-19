@@ -115,6 +115,30 @@ class AquariumAudioEngine {
     });
   }
 
+  // 스테이지 이동: 밝은 승리감 대신, 낮게 가라앉는 불길한 2음 신호
+  playStageTransition() {
+    if (!this.enabled) return;
+    this.init();
+    if (!this.ctx) return;
+
+    // 모바일 스피커에서도 묻히지 않도록 저음만 쓰지 않고 중음역에 배치한다.
+    const notes = [392, 293.66];
+    const start = this.ctx.currentTime;
+    notes.forEach((frequency, index) => {
+      const now = start + index * 0.24;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(frequency, now);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.44);
+    });
+  }
+
   // 5) 판정 대실패 / 치명타 피격
   playDanger() {
     if (!this.enabled) return;

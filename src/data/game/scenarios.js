@@ -319,7 +319,7 @@ export const SCENARIOS = {
   ]
 },
   STAGE_5_DOME: {
-    title: 'STAGE 5 : 00:28 — 중앙 채광 아트리움 돔',
+    title: 'STAGE 5 : 00:28 — 중앙 채광 돔',
     sub: '머리 위 1미터, 5cm 두께의 채광 아크릴 돔이 보였다. 00:30 수장 프로토콜까지 남은 시간은 2분. 천장을 깨야 한다.',
     bg: '/assets/scenes/scene_stage5_dome.webp',
     breakBg: '/assets/scenes/scene_stage5_dome_cracking.webp', // 파쇄 균열 씬
