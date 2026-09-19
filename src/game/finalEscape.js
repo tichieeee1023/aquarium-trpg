@@ -36,22 +36,70 @@ export const FINAL_ESCAPE_STEPS = [
   }
 ];
 
+const hasItem = (inventory, id) => inventory.some((item) => item.id === id);
+
 export function hasFinalStepTool(step, inventory, characterKey) {
-  const hasPrimary = inventory.some((item) => item.id === step.itemId);
+  if (step.id === 'VENT' && hasItem(inventory, 'MASTER_KEYCARD')) return true;
+  if (step.id === 'FRACTURE' && hasItem(inventory, 'HEX_WRENCH')) return true;
+
+  const hasPrimary = hasItem(inventory, step.itemId);
 
   if (hasPrimary) return true;
 
   const canUseSubstitute =
     step.substituteItemId &&
     step.substituteFor?.includes(characterKey) &&
-    inventory.some((item) => item.id === step.substituteItemId);
+    hasItem(inventory, step.substituteItemId);
 
   return Boolean(canUseSubstitute);
 }
 
-export function getFinalEnding({ failures, inventory, characterKey }) {
+/**
+ * Returns the final-escape DC and the one-time preparation that produced it.
+ * Primary tools always win over fallback tools, so a crowbar is never
+ * accidentally made weaker by carrying the hex wrench as well.
+ */
+export function getFinalStepCheck(step, inventory, flags = {}, characterKey) {
+  let dc = step.baseDc;
+  let preparation = null;
+
+  if (step.id === 'VENT') {
+    if (hasItem(inventory, step.itemId)) {
+      dc = step.preparedDc;
+      preparation = step.itemId;
+    } else if (hasItem(inventory, 'MASTER_KEYCARD') || flags.hasMasterKey) {
+      dc = 11;
+      preparation = 'MASTER_KEYCARD';
+    }
+  } else if (step.id === 'FRACTURE') {
+    if (hasItem(inventory, 'CROWBAR')) {
+      dc = step.preparedDc;
+      preparation = 'CROWBAR';
+    } else if (hasItem(inventory, 'HEX_WRENCH')) {
+      dc = 13;
+      preparation = 'HEX_WRENCH';
+    } else if (hasFinalStepTool(step, inventory, characterKey)) {
+      dc = step.preparedDc;
+      preparation = step.substituteItemId;
+    }
+
+    if (flags.isVortexStopped) {
+      dc -= 2;
+      preparation = preparation
+        ? `${preparation} + VORTEX_STOPPED`
+        : 'VORTEX_STOPPED';
+    }
+  } else if (hasFinalStepTool(step, inventory, characterKey)) {
+    dc = step.preparedDc;
+    preparation = step.itemId;
+  }
+
+  return { dc: Math.max(8, dc), preparation };
+}
+
+export function getFinalEnding({ failures, inventory, flags = {}, characterKey }) {
   const preparedCount = FINAL_ESCAPE_STEPS.filter((step) =>
-    hasFinalStepTool(step, inventory, characterKey)
+    getFinalStepCheck(step, inventory, flags, characterKey).preparation
   ).length;
 
   if (failures === 0 && preparedCount === 3) return 'TRUE';

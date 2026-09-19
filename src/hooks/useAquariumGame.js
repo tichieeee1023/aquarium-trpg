@@ -6,7 +6,7 @@ import {
   gameReducer
 } from '../game/index.js';
 import { NEXT_STAGE, createStageIntroStory, getStageTransitionStory } from '../game/stageFlow.js';
-import { FINAL_ESCAPE_STEPS, getFinalEnding, hasFinalStepTool } from '../game/finalEscape.js';
+import { FINAL_ESCAPE_STEPS, getFinalEnding, getFinalStepCheck } from '../game/finalEscape.js';
 
 
 export function useAquariumGame(sfx, settings) {
@@ -260,7 +260,7 @@ export function useAquariumGame(sfx, settings) {
           triggerD20(
             '절연 슈트로 누전 구역 돌파',
             'DEX',
-            11,
+            state.flags.warnedElectricWire ? 9 : 11,
             0,
             () => {
               dispatch({
@@ -279,6 +279,37 @@ export function useAquariumGame(sfx, settings) {
                 payload: {
                   amount: 10,
                   log: '[다이버 특권 · 누전 실패] 강한 감전과 화상을 입었지만 간신히 빠져나왔다. (HP -10)'
+                }
+              });
+              sfx.playDanger();
+              advanceStage('STAGE_2_BULKHEAD');
+            }
+          );
+          return;
+        }
+
+        if (state.flags.warnedElectricWire) {
+          triggerD20(
+            '사전 조사 정보로 누전 구역 통과',
+            'DEX',
+            11,
+            0,
+            () => {
+              dispatch({
+                type: 'APPLY_NONLETHAL_DAMAGE',
+                payload: {
+                  amount: 2,
+                  log: '[사전 조사 정보 사용] 케이블의 침수 위치를 피해 통과했다. DEX DC 13 → 11, HP -2'
+                }
+              });
+              advanceStage('STAGE_2_BULKHEAD');
+            },
+            () => {
+              dispatch({
+                type: 'APPLY_NONLETHAL_DAMAGE',
+                payload: {
+                  amount: 6,
+                  log: '[사전 조사 정보 사용] 감전 지점을 알고 있어 치명상은 피했다. HP -6'
                 }
               });
               sfx.playDanger();
@@ -552,15 +583,14 @@ export function useAquariumGame(sfx, settings) {
     }
 
     const step = FINAL_ESCAPE_STEPS[state.finalStep];
-    const prepared = hasFinalStepTool(
+    const finalCheck = getFinalStepCheck(
       step,
       state.inventory,
+      state.flags,
       state.character.key
     );
-
-    const dc = prepared
-      ? step.preparedDc
-      : step.baseDc;
+    const prepared = Boolean(finalCheck.preparation);
+    const dc = finalCheck.dc;
 
     const specialtyBonus =
       step.specialties.includes(state.character.key)
@@ -625,6 +655,7 @@ export function useAquariumGame(sfx, settings) {
       const ending = getFinalEnding({
         failures: failuresAfter,
         inventory: state.inventory,
+        flags: state.flags,
         characterKey: state.character.key
       });
 
@@ -634,7 +665,7 @@ export function useAquariumGame(sfx, settings) {
       });
     };
 
-    triggerD20(
+    const openFinalDice = () => triggerD20(
       step.title,
       step.stat,
       dc,
@@ -746,6 +777,31 @@ export function useAquariumGame(sfx, settings) {
         });
       }
     );
+
+    const finalItemEffect = finalCheck.preparation === 'MASTER_KEYCARD'
+      ? {
+        kind: 'ITEM_EFFECT',
+        title: ITEM_DB.MASTER_KEYCARD.name,
+        tag: '장비 사용',
+        illustration: ITEM_DB.MASTER_KEYCARD,
+        body: '마스터 키카드를 비상 배출구 리더기에 갖다 댔다. 관리용 전자 잠금이 해제되었다. (DC 14 → 11)'
+      }
+      : finalCheck.preparation === 'HEX_WRENCH'
+        ? {
+          kind: 'ITEM_EFFECT',
+          title: ITEM_DB.HEX_WRENCH.name,
+          tag: '장비 사용',
+          illustration: ITEM_DB.HEX_WRENCH,
+          body: '육각 렌치를 아크릴 균열 사이에 걸었다. 맨손보다 단단한 지점을 확보했다. (DC 15 → 13)'
+        }
+        : null;
+
+    if (finalItemEffect) {
+      setStory({ ...finalItemEffect, onAdvance: openFinalDice });
+      return;
+    }
+
+    openFinalDice();
   };
 
   // =========================================================
@@ -824,6 +880,27 @@ export function useAquariumGame(sfx, settings) {
     if (!point) return;
 
     const resolve = success => {
+      const hasItem = itemId => state.inventory.some(item => item.id === itemId);
+      const coldVestProtection = !success && id === 'c3_3' && hasItem('COLD_VEST');
+      const itemEffectStory = (id === 'c3_3' && hasItem('PENLIGHT')) || (id === 'c4_3' && hasItem('LANTERN'))
+        ? null
+        : coldVestProtection
+        ? {
+          kind: 'ITEM_EFFECT',
+            title: ITEM_DB.COLD_VEST.name,
+            tag: '장비 효과',
+            illustration: ITEM_DB.COLD_VEST,
+            body: '방한 조끼가 혹한의 공기를 막아 냈다. 동상 피해가 줄었다. (HP -1)'
+          }
+          : id === 'c4_4' && hasItem('KEY_TAG')
+            ? {
+              kind: 'ITEM_EFFECT',
+              title: ITEM_DB.KEY_TAG.name,
+              tag: '장비 사용',
+              illustration: ITEM_DB.KEY_TAG,
+              body: '보안 태그를 리더기에 갖다 댔다. 전자 잠금이 즉시 해제되었다.'
+            }
+            : null;
       const reward =
         success && point.reward
           ? ITEM_DB[point.reward]
@@ -850,7 +927,7 @@ export function useAquariumGame(sfx, settings) {
           hpCost:
             success
               ? point.hpCost
-              : point.failDmg,
+              : (coldVestProtection ? 1 : point.failDmg),
 
           sanCost:
             success
@@ -864,8 +941,7 @@ export function useAquariumGame(sfx, settings) {
 
           outcome:
             success
-              ? point.successLog ||
-              point.log
+              ? point.successLog || point.log
               : point.failLog
         }
       });
@@ -883,16 +959,15 @@ export function useAquariumGame(sfx, settings) {
 
       const baseResult =
         success
-          ? point.successLog ||
-          point.log
+          ? point.successLog || point.log
           : point.failLog;
 
       const resultBody = baseResult || '조사를 마쳤다.';
 
       // 장비 획득
       // 장면 이미지를 같이 넣지 않는다.
-      if (reward?.img) {
-        setStory({
+      const resultStory = reward?.img
+        ? {
           kind: 'REWARD',
           title: point.name,
           tag: '장비 획득',
@@ -900,10 +975,8 @@ export function useAquariumGame(sfx, settings) {
           rewardItems: [
             reward
           ]
-        });
-      } else {
-        // 일반 조사
-        setStory({
+        }
+        : {
           kind: 'RESULT',
           title: point.name,
           tag:
@@ -911,8 +984,15 @@ export function useAquariumGame(sfx, settings) {
               ? '조사 기록'
               : '판정 실패',
           body: resultBody
-        });
-      }
+        };
+
+      // 보호 장비는 결과 뒤에, 도구·열쇠는 결과 전에 보여 준다.
+      // 그래야 "태그로 해제 → 마스크 획득"처럼 원인과 결과가 뒤집히지 않는다.
+      showStorySequence(
+        itemEffectStory && !coldVestProtection
+          ? [itemEffectStory, resultStory]
+          : [resultStory, itemEffectStory]
+      );
 
       if (
         !success ||
@@ -945,10 +1025,25 @@ export function useAquariumGame(sfx, settings) {
   // 수의사 특권
   // STAGE 3 냉각기 제어반: DC 12 → 9
   if (
-    state.character.key === 'VET' &&
-    id === 'c3_3'
+    id === 'c3_3' &&
+    state.inventory.some(item => item.id === 'PENLIGHT')
   ) {
     dc = 9;
+  }
+
+  if (
+    id === 'c4_4' &&
+    state.inventory.some(item => item.id === 'KEY_TAG')
+  ) {
+    resolve(true);
+    return;
+  }
+
+  if (
+    id === 'c4_3' &&
+    state.inventory.some(item => item.id === 'LANTERN')
+  ) {
+    dc = Math.max(8, dc - 2);
   }
 
   // STAGE 4 방재 장비 보관함
@@ -961,6 +1056,48 @@ export function useAquariumGame(sfx, settings) {
     } else if (oxygenLockerRetry) {
       dc = 9;
     }
+  }
+
+  const openPointCheck = (stat = point.checkStat, checkDc = dc) => triggerD20(
+    point.name,
+    stat,
+    checkDc,
+    bonus,
+    () => resolve(true),
+    () => resolve(false)
+  );
+
+  const showItemPreparation = (item, body, stat = point.checkStat, checkDc = dc) => {
+    setStory({
+      kind: 'ITEM_EFFECT',
+      title: item.name,
+      tag: '장비 사용',
+      illustration: item,
+      body,
+      onAdvance: () => openPointCheck(stat, checkDc)
+    });
+  };
+
+  if (id === 'c3_3' && state.inventory.some(item => item.id === 'PENLIGHT')) {
+    showItemPreparation(
+      ITEM_DB.PENLIGHT,
+      '펜라이트 불빛에 냉각기 우회 배선이 드러났다. INT 판정 난이도가 낮아졌다. (DC 12 → 9)'
+    );
+    return;
+  }
+
+  if (id === 'c4_3' && state.inventory.some(item => item.id === 'LANTERN')) {
+    const hasDiverCutters = state.character.key === 'DIVER' && state.inventory.some(item => item.id === 'LINE_CUTTER');
+    const stat = hasDiverCutters ? 'DEX' : point.checkStat;
+    const checkDc = hasDiverCutters ? 8 : dc;
+    const dcBefore = hasDiverCutters ? 9 : point.dc;
+    showItemPreparation(
+      ITEM_DB.LANTERN,
+      `랜턴 불빛이 수면 아래 그릴의 위치를 비췄다. 판정 난이도가 낮아졌다. (DC ${dcBefore} → ${checkDc})`,
+      stat,
+      checkDc
+    );
+    return;
   }
 
   // STAGE 4 방재 장비 보관함
@@ -1012,7 +1149,7 @@ export function useAquariumGame(sfx, settings) {
     triggerD20(
       point.name,
       'DEX',
-      9,
+      state.inventory.some(item => item.id === 'LANTERN') ? 8 : 9,
       0,
       () => resolve(true),
       () => resolve(false)
@@ -1132,6 +1269,9 @@ resolve(true);
 
     inventory:
       state.inventory,
+
+    flags:
+      state.flags,
 
     finalStep:
       state.finalStep,

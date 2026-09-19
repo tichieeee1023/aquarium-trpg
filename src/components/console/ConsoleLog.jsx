@@ -1,3 +1,19 @@
+function renderLog(log) {
+  return log.split(/((?:HP|SAN|STR|DEX|INT|WILL|LUK)\s*[+-]\s*\d+|DC\s*\d+\s*→\s*\d+)/gi).map((part, index) => {
+    if (/^(?:HP|SAN|STR|DEX|INT|WILL|LUK)\s*-\s*\d+$/i.test(part)) {
+      return <span className="typed-damage" key={index}>{part}</span>;
+    }
+    if (/^(?:HP|SAN|STR|DEX|INT|WILL|LUK)\s*\+\s*\d+$/i.test(part)) {
+      return <span className="typed-benefit" key={index}>{part}</span>;
+    }
+    if (/^DC\s*\d+\s*→\s*\d+$/i.test(part)) {
+      const [, before, after] = part.match(/DC\s*(\d+)\s*→\s*(\d+)/i) ?? [];
+      return <span className={Number(after) < Number(before) ? 'typed-benefit' : 'typed-damage'} key={index}>{part}</span>;
+    }
+    return part;
+  });
+}
+
 export default function ConsoleLog({ logs }) {
   return (
 <div className="bg-[#121622] p-3 rounded-xl border border-[#1f283d] flex-1">
@@ -8,7 +24,7 @@ export default function ConsoleLog({ logs }) {
             <div className="space-y-1.5 overflow-y-auto max-h-64 pr-1 text-[11px] font-mono leading-relaxed">
               {logs.map((log, index) => (
                 <div key={index} className="text-neutral-400 border-b border-neutral-900/60 pb-1">
-                  {log}
+                  {renderLog(log)}
                 </div>
               ))}
             </div>

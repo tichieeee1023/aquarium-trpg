@@ -1,4 +1,5 @@
-import { FINAL_ESCAPE_STEPS, hasFinalStepTool } from '../../game/finalEscape.js';
+import { FINAL_ESCAPE_STEPS, getFinalStepCheck, hasFinalStepTool } from '../../game/finalEscape.js';
+import { ITEM_DB } from '../../data/game/items.js';
 
 const STEP_SHORT_LABELS = ['압력 해제', '돔 파쇄', '지상 탈출'];
 
@@ -20,13 +21,17 @@ export default function FinalEscapePanel({
   const current = FINAL_ESCAPE_STEPS[currentIndex];
   const failures = player.finalFailures ?? 0;
 
-  const prepared = hasFinalStepTool(
+  const hasStandardTool = hasFinalStepTool(
     current,
     player.inventory,
     player.profileId
   );
 
-  const currentDc = prepared ? current.preparedDc : current.baseDc;
+  const finalCheck = getFinalStepCheck(current, player.inventory, player.flags, player.profileId);
+  const currentDc = finalCheck.dc;
+  const prepared = hasStandardTool || Boolean(finalCheck.preparation);
+  const preparationItemId = finalCheck.preparation?.split(' + ')[0];
+  const preparationItem = ITEM_DB[preparationItemId];
   const hasSpecialty = current.specialties.includes(player.profileId);
   const hpDanger = player.hp <= 6;
 
@@ -92,7 +97,7 @@ export default function FinalEscapePanel({
           <div className={prepared ? 'is-positive' : 'is-negative'}>
             <span>{prepared ? '✓' : '✕'}</span>
             <div>
-              <strong>{current.itemName}</strong>
+              <strong>{preparationItem?.name || (prepared && finalCheck.preparation === 'VORTEX_STOPPED' ? '펌프 정지 정보' : current.itemName)}</strong>
               <small>
                 {prepared
                   ? `장비 확보 · DC ${current.baseDc} → ${current.preparedDc}`
