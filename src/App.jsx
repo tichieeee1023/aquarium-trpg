@@ -22,8 +22,6 @@ import CreditsModal from './components/modal/CreditsModal.jsx';
 import { SCENARIOS } from './game/index.js';
 import { getRelevantItemIds } from './utils/itemRelevance.js';
 
-const OPENING_KEY = 'aquarium-opening-seen-v1';
-
 export default function App() {
   const sfx = useAudioSynth();
 
@@ -48,19 +46,6 @@ export default function App() {
 
   const [showOpening, setShowOpening] =
     useState(false);
-
-  const [hasSeenOpening, setHasSeenOpening] =
-    useState(() => {
-      try {
-        return (
-          localStorage.getItem(
-            OPENING_KEY
-          ) === '1'
-        );
-      } catch {
-        return false;
-      }
-    });
 
   const [utility, setUtility] =
     useState(null);
@@ -181,15 +166,6 @@ export default function App() {
   // =========================================================
 
   const completeOpening = () => {
-    try {
-      localStorage.setItem(
-        OPENING_KEY,
-        '1'
-      );
-    } catch {}
-
-    setHasSeenOpening(true);
-
     sfx.playClick();
 
     setShowOpening(false);
@@ -282,10 +258,7 @@ export default function App() {
 
             setHasActiveRun(true);
             setShowIntro(false);
-
-            setShowOpening(
-              !hasSeenOpening
-            );
+            setShowOpening(true);
           }}
           onContinue={() => {
             sfx.playClick();

@@ -311,7 +311,8 @@ button[class*="bg-gradient"]:hover:not(:disabled) { background-color: #f2cc86; }
 .opening-copy h2 { font: 22px var(--story-font); margin-bottom: 18px; color: #e9e6db; }
 .opening-copy p { min-height: 106px; white-space: pre-line; font: clamp(18px, 1.7vw, 24px)/1.75 var(--story-font); color: #e1e7e3; }
 .opening-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.opening-next { min-width: 176px; padding: 11px 18px; color: #17140e; background: #e0bb69; border-color: #f7de9b #ad8134 #72521d #d3a64d; box-shadow: 3px 3px 0 #0a0804; }
+.opening-next { min-width: 176px; padding: 11px 18px; appearance: none; -webkit-appearance: none; color: #17140e; background-color: #e0bb69; background-image: none; border-color: #f7de9b #ad8134 #72521d #d3a64d; box-shadow: 3px 3px 0 #0a0804; }
+.opening-next:hover:not(:disabled), .opening-next:focus-visible { background-color: #f2cc86; }
 .opening-skip { padding: 10px 14px; color: #cad4d5; background: #10191db8; border-color: #607278 #1c282c #1c282c #607278; box-shadow: 2px 2px 0 #010304; font-size: 14px; }
 .opening-progress { display: flex; gap: 8px; margin-top: 18px; }
 .opening-progress span { width: 28px; height: 3px; background: #617075; }
@@ -686,7 +687,8 @@ button:disabled { cursor: not-allowed; }
 .opening-copy h2 { font: 22px var(--story-font); margin-bottom: 18px; color: #e9e6db; }
 .opening-copy p { min-height: 106px; white-space: pre-line; font: clamp(18px, 1.7vw, 24px)/1.75 var(--story-font); color: #e1e7e3; }
 .opening-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.opening-next { min-width: 176px; padding: 11px 18px; color: #17140e; background: #e0bb69; border-color: #f7de9b #ad8134 #72521d #d3a64d; box-shadow: 3px 3px 0 #0a0804; }
+.opening-next { min-width: 176px; padding: 11px 18px; appearance: none; -webkit-appearance: none; color: #17140e; background-color: #e0bb69; background-image: none; border-color: #f7de9b #ad8134 #72521d #d3a64d; box-shadow: 3px 3px 0 #0a0804; }
+.opening-next:hover:not(:disabled), .opening-next:focus-visible { background-color: #f2cc86; }
 .opening-skip { padding: 10px 14px; color: #cad4d5; background: #10191db8; border-color: #607278 #1c282c #1c282c #607278; box-shadow: 2px 2px 0 #010304; font-size: 14px; }
 .opening-progress { display: flex; gap: 8px; margin-top: 18px; }
 .opening-progress span { width: 28px; height: 3px; background: #617075; }
