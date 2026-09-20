@@ -80,6 +80,12 @@ export default function App() {
       []
     );
 
+  const closeCelebration =
+    useCallback(
+      () => setCelebrationActive(false),
+      []
+    );
+
   const openCollection = () => {
     if (collectionUnlocked) {
       setUtility('collection');
@@ -292,9 +298,7 @@ export default function App() {
           celebrationActive={
             celebrationActive
           }
-          onCelebrationFinish={() =>
-            setCelebrationActive(false)
-          }
+          onCelebrationClose={closeCelebration}
         />
       ) : showOpening ? (
 

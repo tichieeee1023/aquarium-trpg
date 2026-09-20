@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
 import { ENDING_DEFINITIONS } from '../../data/endingDB.js';
 
 const ENDING_COUNT = Object.keys(ENDING_DEFINITIONS).length;
@@ -14,9 +15,10 @@ const COLORS = [
 export default function CompletionCelebration({
   active,
   disableEffects,
-  onFinish
+  onClose
 }) {
   const canvasRef = useRef(null);
+  const closeButtonRef = useRef(null);
 
   useEffect(() => {
     if (!active || disableEffects) return undefined;
@@ -154,21 +156,30 @@ export default function CompletionCelebration({
   useEffect(() => {
     if (!active) return undefined;
 
-    const timer = window.setTimeout(
-      () => onFinish?.(),
-      disableEffects ? 5200 : 7600
-    );
+    closeButtonRef.current?.focus();
 
-    return () => window.clearTimeout(timer);
-  }, [active, disableEffects, onFinish]);
+    const handleKeyDown = event => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose?.();
+      } else if (event.key === 'Tab') {
+        event.preventDefault();
+        closeButtonRef.current?.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [active, onClose]);
 
   if (!active) return null;
 
   return (
     <div
       className={`completion-celebration${disableEffects ? ' is-static' : ''}`}
-      role="status"
-      aria-live="polite"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="completion-title"
     >
       {!disableEffects && (
         <canvas
@@ -181,6 +192,16 @@ export default function CompletionCelebration({
       <div className="completion-scan" aria-hidden="true" />
 
       <section className="completion-terminal">
+        <button
+          ref={closeButtonRef}
+          type="button"
+          className="completion-close"
+          aria-label="완주 축하 화면 닫기"
+          onClick={onClose}
+        >
+          <X size={20} aria-hidden="true" />
+        </button>
+
         <header className="completion-header">
           <span>AQUARIUM // ARCHIVE COMPLETE</span>
           <strong>07 / 07</strong>
@@ -196,7 +217,7 @@ export default function CompletionCelebration({
         </figure>
 
         <div className="completion-thanks">
-          <h2>THANK YOU FOR PLAYING</h2>
+          <h2 id="completion-title">THANK YOU FOR PLAYING</h2>
           <h3>아쿠아리움: 심해의 균열</h3>
           <p className="completion-copy">
             {ENDING_COUNT}개의 결말과 마지막 기록까지 확인해 주셔서 감사합니다.

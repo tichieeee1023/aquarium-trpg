@@ -13,7 +13,7 @@ export default function IntroScreen({
   collectionComplete,
   disableEffects,
   celebrationActive,
-  onCelebrationFinish
+  onCelebrationClose
 }) {
   return (
     <main className="intro-screen">
@@ -31,7 +31,7 @@ export default function IntroScreen({
       <CompletionCelebration
         active={celebrationActive}
         disableEffects={disableEffects}
-        onFinish={onCelebrationFinish}
+        onClose={onCelebrationClose}
       />
 
       <section className="intro-copy">
