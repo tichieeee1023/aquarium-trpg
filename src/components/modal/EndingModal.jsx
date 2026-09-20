@@ -4,7 +4,7 @@ import { ENDING_CARDS } from '../../data/assetDB.js';
 import { useTypewriter } from '../../hooks/useTypewriter.js';
 import TypedText from '../narrative/TypedText.jsx';
 
-export default function EndingModal({ stage, endingData, handleRestart, onCollection, collectedCount, disableEffects, collectionComplete }) {
+export default function EndingModal({ stage, endingData, handleRestart, onCollection, collectedCount, totalEndingCount, disableEffects, collectionComplete }) {
   const text = endingData?.desc ?? '';
   const jobEpilogue = endingData?.jobEpilogue ?? '';
   const [revealed, setRevealed] = useState(() => disableEffects === true);
@@ -42,7 +42,7 @@ export default function EndingModal({ stage, endingData, handleRestart, onCollec
           </div>
           <div className="ending-actions">
             {!allTextDone && <button onClick={() => { finish(); finishDialogue(); finishDescription(); }} className="bg-neutral-900 text-neutral-100 cursor-pointer">텍스트 바로 보기</button>}
-            <button onClick={onCollection} className={collectionComplete ? 'collection-button-complete' : 'bg-cyan-950 text-cyan-200'}>{collectionComplete ? <><span className="collection-complete-mark" aria-hidden="true" />엔딩 도감 · 7/7</> : `엔딩 도감 · ${collectedCount}/7`}</button>
+            <button onClick={onCollection} className={collectionComplete ? 'collection-button-complete' : 'bg-cyan-950 text-cyan-200'}>{collectionComplete ? <><span className="collection-complete-mark" aria-hidden="true" />엔딩 도감 · {totalEndingCount}/{totalEndingCount}</> : `엔딩 도감 · ${collectedCount}/${totalEndingCount}`}</button>
             <button onClick={handleRestart} className="bg-neutral-800 text-neutral-100 font-bold cursor-pointer"><RotateCcw size={18} /><span>처음부터 다시 시도</span></button>
           </div>
           <details className="ending-credits">

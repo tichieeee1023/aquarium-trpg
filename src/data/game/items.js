@@ -5,6 +5,7 @@ export const ITEM_DB = {
   WETSUIT: { id: 'WETSUIT', img: '/assets/items/item_gear_wetsuit.webp', name: '네오프렌 다이빙 슈트', icon: '🤿', desc: '단열 및 비상 절연 방호 슈트' },
   PENLIGHT: { id: 'PENLIGHT', img: '/assets/items/item_gear_penlight.webp', name: '의료용 방수 펜라이트', icon: '🔦', desc: '정밀 회로 분석용 광원' },
   SEDATIVE: { id: 'SEDATIVE', img: '/assets/items/item_tool_sedative.webp', name: '진정제 주사 앰플', icon: '💉', desc: '사용 시 SAN +8 회복', consumable: true },
+  ENERGY_DRINK: { id: 'ENERGY_DRINK', img: '/assets/items/item_energy_drink.webp', name: '에너지 드링크', icon: '🥤', desc: '사용 시 HP +2 회복', consumable: true, hpRestore: 2 },
   KEY_TAG: { id: 'KEY_TAG', img: '/assets/items/item_gear_keytag.webp', name: '마스터 보안 키 태그', icon: '🏷️', desc: '방재함 전자기 락 해제 태그' },
   LANTERN: { id: 'LANTERN', img: '/assets/items/item_tool_lantern.webp', name: '충전식 헤드랜턴', icon: '💡', desc: '시야 확보용 고휘도 랜턴' },
   CROWBAR: { id: 'CROWBAR', img: '/assets/items/item_tool_crowbar.webp', name: '단조 빠루', icon: '⛏️', desc: '수밀문 저지와 두꺼운 아크릴 균열 확대에 쓰는 지렛대' },
@@ -15,4 +16,4 @@ export const ITEM_DB = {
   OXYGEN_MASK: { id: 'OXYGEN_MASK', img: '/assets/items/item_tool_mask.webp', name: '휴대 산소마스크', icon: '😷', desc: '완전 침수와 분출 급류 속에서 마지막 호흡을 확보하는 마스크' }
 };
 
-// 확정된 9장의 실제 이미지 에셋 매핑
+// 게임 아이템의 실제 이미지 에셋 매핑

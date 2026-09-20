@@ -4,6 +4,25 @@ import { SCENARIOS } from '../data/game/scenarios.js';
 import { ENDINGS } from '../data/game/endings.js';
 import { initialGameState } from './initialState.js';
 
+function consumeItem(state, item, logPrefix) {
+  const hpAmount = item.hpRestore || 0;
+  const sanAmount = item.sanRestore || (item.id === 'SEDATIVE' ? 8 : 0);
+  const hpRecovered = Math.min(hpAmount, Math.max(0, state.character.maxHp - state.character.hp));
+  const sanRecovered = Math.min(sanAmount, Math.max(0, state.character.maxSan - state.character.san));
+  const effects = [hpAmount > 0 ? `HP +${hpRecovered}` : null, sanAmount > 0 ? `SAN +${sanRecovered}` : null].filter(Boolean).join(', ');
+
+  return {
+    ...state,
+    character: {
+      ...state.character,
+      hp: state.character.hp + hpRecovered,
+      san: state.character.san + sanRecovered
+    },
+    inventory: state.inventory.filter(i => i.id !== item.id),
+    logs: [`${logPrefix} (${effects})`, ...state.logs]
+  };
+}
+
 export function gameReducer(state, action) {
   switch (action.type) {
     case 'SELECT_CHARACTER': {
@@ -15,7 +34,7 @@ export function gameReducer(state, action) {
         character: {
           ...jobData,
           hp: 20, maxHp: 20,
-          san: 30, maxSan: 30,
+          san: 15, maxSan: 15,
           stats: { ...jobData.baseStats },
           condition: '당직 대기'
         },
@@ -105,17 +124,13 @@ export function gameReducer(state, action) {
     case 'USE_ITEM': {
       const item = ITEM_DB[action.payload];
       if (!item || !item.consumable || !state.inventory.some(i => i.id === item.id) || state.phase === 'ENDING' || state.diceModal.isOpen) return state;
-      let sanAdd = 0;
-      if (item.id === 'SEDATIVE') sanAdd = 8;
-      return {
-        ...state,
-        character: {
-          ...state.character,
-          san: Math.min(state.character.maxSan, state.character.san + sanAdd)
-        },
-        inventory: state.inventory.filter(i => i.id !== item.id),
-        logs: [`[아이템 사용] ${item.name}을 사용했다. (SAN +${sanAdd})`, ...state.logs]
-      };
+      return consumeItem(state, item, `[아이템 사용] ${item.name}을 사용했다.`);
+    }
+
+    case 'REWARD_AND_CONSUME_ITEM': {
+      const item = ITEM_DB[action.payload];
+      if (!item?.consumable || state.phase === 'ENDING' || state.diceModal.isOpen) return state;
+      return consumeItem(state, item, `[보상 획득·즉시 사용] ${item.name}을 발견해 바로 사용했다.`);
     }
 
     case 'EXAMINE_POINT': {

@@ -235,12 +235,47 @@ export function useAquariumGame(sfx, settings) {
   // AP 0 — 각 스테이지 위기 결단
   // =========================================================
 
-  const handleStageResolve = () => {
+  const handleStageResolve = (forceDangerousRoute = false) => {
     // -------------------------------------------------------
     // STAGE 1 — 누전 폭발
     // -------------------------------------------------------
     if (state.phase === 'STAGE_1_JELLYFISH') {
       const resolveElectricShock = () => {
+        if (forceDangerousRoute) {
+          triggerD20(
+            '에너지 드링크를 향한 누전 구간 강행',
+            'DEX',
+            14,
+            0,
+            () => {
+              const energyDrink = ITEM_DB.ENERGY_DRINK;
+              const recoveredHp = Math.min(energyDrink.hpRestore, Math.max(0, state.character.maxHp - state.character.hp));
+              dispatch({
+                type: 'REWARD_AND_CONSUME_ITEM',
+                payload: energyDrink.id
+              });
+              setStory({
+                kind: 'ITEM_EFFECT',
+                title: energyDrink.name,
+                tag: '위험 돌파 보상 · 즉시 사용',
+                rewardItems: [energyDrink],
+                body: recoveredHp > 0
+                  ? `전류가 흐르는 통로를 간신히 빠져나왔다. 쓰러진 자판기 밑에서 굴러 나온 에너지 드링크를 따서 단숨에 들이켰다. 숨이 조금 돌아왔다. (HP +${recoveredHp})`
+                  : '전류가 흐르는 통로를 간신히 빠져나왔다. 쓰러진 자판기 밑에서 굴러 나온 에너지 드링크를 따서 단숨에 들이켰다. 이미 체력은 충분해 회복되지는 않았다.',
+                onAdvance: () => advanceStage('STAGE_2_BULKHEAD')
+              });
+            },
+            () => {
+              sfx.playDanger();
+              dispatch({
+                type: 'TRIGGER_ENDING',
+                payload: 'BAD_1'
+              });
+            }
+          );
+          return;
+        }
+
         const hasSafeRoute =
           state.flags.hasRubberBoots ||
           state.flags.isGateUnlocked;
@@ -320,19 +355,6 @@ export function useAquariumGame(sfx, settings) {
           return;
         }
 
-        if (settings.easyMode) {
-          dispatch({
-            type: 'APPLY_NONLETHAL_DAMAGE',
-            payload: {
-              amount: 3,
-              log: '[이지 모드 · 누전 돌파] 화상을 입었지만 비상 통로로 빠져나왔다. (HP -3)'
-            }
-          });
-          sfx.playDanger();
-          advanceStage('STAGE_2_BULKHEAD');
-          return;
-        }
-
         sfx.playDanger();
         dispatch({
           type: 'TRIGGER_ENDING',
@@ -347,7 +369,14 @@ export function useAquariumGame(sfx, settings) {
         kind: 'SCENE',
         title: '23:53 — 누전 폭발',
         tag: '위기 발생',
-        body: `지지지직— 콰앙!
+        body: forceDangerousRoute
+          ? `지지지직— 콰앙!
+
+끊어진 고압 케이블이 바닥의 물 위로 떨어졌다. 새하얀 섬광에 눈을 감았는데도 푸른 잔상이 시야에 들러붙었다.
+귀를 때리는 파열음과 함께 아쿠아리움 전체가 흔들렸다. 발밑의 물이 먼저 빛났다.
+
+그 푸른 빛 너머, 통로 끝의 자판기 하나가 비스듬히 쓰러져 있었다. 깨진 진열대 사이로 에너지 드링크 캔 하나가 보였다. 저기까지 가려면 전류가 흐르는 물길을 건너야 했다.`
+          : `지지지직— 콰앙!
 
 끊어진 고압 케이블이 바닥의 물 위로 떨어졌다. 새하얀 섬광에 눈을 감았는데도 푸른 잔상이 시야에 들러붙었다.
 귀를 때리는 파열음과 함께 아쿠아리움 전체가 흔들렸다. 발밑의 물이 먼저 빛났다.`,
@@ -412,19 +441,6 @@ export function useAquariumGame(sfx, settings) {
           return;
         }
 
-        if (settings.easyMode) {
-          dispatch({
-            type: 'APPLY_NONLETHAL_DAMAGE',
-            payload: {
-              amount: 3,
-              log: '[이지 모드 · 격벽 돌파] 철판에 부딪혔지만 반대편으로 굴러 나왔다. (HP -3)'
-            }
-          });
-          sfx.playDanger();
-          advanceStage('STAGE_3_FREEZER');
-          return;
-        }
-
         sfx.playDanger();
         dispatch({
           type: 'TRIGGER_ENDING',
@@ -486,9 +502,13 @@ export function useAquariumGame(sfx, settings) {
             () => {
               sfx.playDanger();
               dispatch({
-                type: 'TRIGGER_ENDING',
-                payload: 'BAD_3'
+                type: 'APPLY_NONLETHAL_DAMAGE',
+                payload: {
+                  amount: 4,
+                  log: '[토치 해빙 실패] 불꽃이 래치 한쪽만 녹였다. 얼음을 손으로 깨고 문을 밀어내는 사이 저체온증이 심해졌다. (HP -4)'
+                }
               });
+              advanceStage('STAGE_4_PUMP');
             }
           );
           return;
@@ -512,19 +532,6 @@ export function useAquariumGame(sfx, settings) {
               });
             }
           );
-          return;
-        }
-
-        if (settings.easyMode) {
-          dispatch({
-            type: 'APPLY_NONLETHAL_DAMAGE',
-            payload: {
-              amount: 3,
-              log: '[이지 모드 · 동결 돌파] 저체온증을 입었지만 문은 열렸다. (HP -3)'
-            }
-          });
-          sfx.playDanger();
-          advanceStage('STAGE_4_PUMP');
           return;
         }
 
@@ -592,6 +599,9 @@ export function useAquariumGame(sfx, settings) {
     );
     const prepared = Boolean(finalCheck.preparation);
     const dc = finalCheck.dc;
+    const preparationParts = finalCheck.preparation?.split(' + ') ?? [];
+    const pumpStoppedPreparation = preparationParts.includes('VORTEX_STOPPED');
+    const fractureTool = state.inventory.find(item => ['CROWBAR', 'HEX_WRENCH', 'TONGS'].includes(item.id));
 
     const specialtyBonus =
       step.specialties.includes(state.character.key)
@@ -618,14 +628,28 @@ export function useAquariumGame(sfx, settings) {
 
     const getSuccessText = () => {
       if (step.id === 'VENT') {
-        return prepared
-          ? '가열된 배출구가 비명을 지르듯 열렸다. 압력계 바늘이 빠르게 떨어지고, 돔을 짓누르던 수압이 조금씩 풀리기 시작했다.'
-          : '맨손에 가까운 조작 끝에 비상 배출구가 가까스로 열렸다. 완전히 안전하지는 않지만, 돔을 깨뜨릴 틈은 생겼다.';
+        if (preparationParts.includes('MASTER_KEYCARD')) {
+          return '마스터 키카드가 관리용 잠금을 풀었다. 밸브가 돌아가며 배출구가 열렸고, 압력계 바늘이 빠르게 떨어지기 시작했다.';
+        }
+
+        if (preparationParts.includes('HEATING_TORCH')) {
+          return '가열된 배출구가 비명을 지르듯 열렸다. 압력계 바늘이 빠르게 떨어지고, 돔을 짓누르던 수압이 조금씩 풀리기 시작했다.';
+        }
+
+        return '맨손에 가까운 조작 끝에 비상 배출구가 가까스로 열렸다. 완전히 안전하지는 않지만, 돔을 깨뜨릴 틈은 생겼다.';
       }
 
       if (step.id === 'FRACTURE') {
-        return prepared
-          ? '도구를 균열 사이에 깊숙이 박아 넣었다. 둔탁한 파열음과 함께 아크릴 지지대가 연달아 갈라졌다.'
+        if (pumpStoppedPreparation && fractureTool) {
+          return `펌프가 멎으며 돔의 진동이 잦아들었다. ${fractureTool.name}을 균열에 걸고 체중을 실었다. 둔탁한 파열음과 함께 아크릴 지지대가 연달아 갈라졌다.`;
+        }
+
+        if (pumpStoppedPreparation) {
+          return '펌프가 멎자 바닥을 흔들던 진동과 물살이 잦아들었다. 흔들리지 않는 균열에 체중을 싣자 아크릴 지지대가 연달아 갈라졌다.';
+        }
+
+        return fractureTool
+          ? `도구를 균열 사이에 깊숙이 박아 넣었다. 둔탁한 파열음과 함께 아크릴 지지대가 연달아 갈라졌다.`
           : '몸무게를 실어 몇 번이고 지지대를 내리쳤다. 팔이 저려 왔지만, 마침내 돔에 사람이 빠져나갈 만한 균열이 벌어졌다.';
       }
 
@@ -648,8 +672,8 @@ export function useAquariumGame(sfx, settings) {
       }
 
       return isNatural1
-        ? '분출수가 몸을 벽으로 내던졌다. 시야가 뒤집히고 마지막 숨이 터져 나왔다.'
-        : '물살이 몇 번이고 몸을 아래로 끌어당겼다. 간신히 지상까지 닿았지만, 온몸의 힘이 거의 남지 않았다.';
+          ? '분출수가 몸을 벽으로 내던졌다. 한순간 숨이 막혀 의식을 잃었지만, 물살에 밀려 수면 가까이 떠올랐다.'
+          : '물살이 몇 번이고 몸을 아래로 끌어당겼다. 간신히 지상까지 닿았지만, 온몸의 힘이 거의 남지 않았다.';
     };
 
     const finishEnding = (failuresAfter) => {
@@ -721,11 +745,8 @@ export function useAquariumGame(sfx, settings) {
         const failureCount = isNatural1 ? 2 : 1;
         const damage = getDamage(isNatural1);
 
-        const hpAfter =
-          state.character.hp - damage.hpDamage;
-
-        const sanAfter =
-          state.character.san - damage.sanDamage;
+        const hpAfter = state.character.hp - damage.hpDamage;
+        const sanAfter = state.character.san - damage.sanDamage;
 
         dispatch({
           type: 'RESOLVE_FINAL_STEP',
@@ -746,13 +767,8 @@ export function useAquariumGame(sfx, settings) {
         const isLastStep =
           state.finalStep === FINAL_ESCAPE_STEPS.length - 1;
 
-        const isFatal =
-          hpAfter <= 0 ||
-          sanAfter <= 0;
-
-        const mustBadEnd =
-          isFatal ||
-          (step.id === 'ASCENT' && isNatural1);
+        const isFatal = hpAfter <= 0 || sanAfter <= 0;
+        const mustBadEnd = isFatal || (step.id === 'ASCENT' && isNatural1);
 
         const failuresAfter =
           state.finalFailures + failureCount;
@@ -764,10 +780,7 @@ export function useAquariumGame(sfx, settings) {
           body: getFailText(isNatural1),
           onAdvance: () => {
             if (mustBadEnd) {
-              dispatch({
-                type: 'TRIGGER_ENDING',
-                payload: 'BAD_4'
-              });
+              dispatch({ type: 'TRIGGER_ENDING', payload: 'BAD_4' });
               return;
             }
 
@@ -779,23 +792,35 @@ export function useAquariumGame(sfx, settings) {
       }
     );
 
-    const finalItemEffect = finalCheck.preparation === 'MASTER_KEYCARD'
+    const finalItemEffect = preparationParts.includes('MASTER_KEYCARD')
       ? {
         kind: 'ITEM_EFFECT',
         title: ITEM_DB.MASTER_KEYCARD.name,
         tag: '장비 사용',
         illustration: ITEM_DB.MASTER_KEYCARD,
-        body: '마스터 키카드를 비상 배출구 리더기에 갖다 댔다. 관리용 전자 잠금이 해제되었다. (DC 14 → 11)'
+        body: `마스터 키카드를 비상 배출구 리더기에 갖다 댔다. 관리용 전자 잠금이 해제되었다. (DC ${step.baseDc} → ${dc})`
       }
-      : finalCheck.preparation === 'HEX_WRENCH'
+      : preparationParts.includes('HEX_WRENCH')
         ? {
           kind: 'ITEM_EFFECT',
           title: ITEM_DB.HEX_WRENCH.name,
-          tag: '장비 사용',
+          tag: pumpStoppedPreparation ? '장비 · 환경 효과' : '장비 사용',
           illustration: ITEM_DB.HEX_WRENCH,
-          body: '육각 렌치를 아크릴 균열 사이에 걸었다. 맨손보다 단단한 지점을 확보했다. (DC 15 → 13)'
+          body: pumpStoppedPreparation
+            ? `펌프가 멎어 바닥의 진동이 가라앉았다. 그 틈에 육각 렌치를 균열 사이에 걸었다. (DC ${step.baseDc} → ${dc})`
+            : `육각 렌치를 아크릴 균열 사이에 걸었다. 맨손보다 단단한 지점을 확보했다. (DC ${step.baseDc} → ${dc})`
         }
-        : null;
+        : pumpStoppedPreparation
+          ? {
+            kind: 'ITEM_EFFECT',
+            title: '펌프 정지',
+            tag: fractureTool ? '장비 · 환경 효과' : '환경 효과',
+            illustration: fractureTool,
+            body: fractureTool
+              ? `펌프가 멎어 바닥의 진동이 가라앉았다. ${fractureTool.name}을 균열에 걸거나 받쳐 쓸 틈이 생겼다. (DC ${step.baseDc} → ${dc})`
+              : `펌프가 멎어 바닥의 진동이 가라앉았다. 균열이 흔들리지 않아 지지대에 힘을 싣기 쉬워졌다. (DC ${step.baseDc} → ${dc})`
+          }
+          : null;
 
     if (finalItemEffect) {
       setStory({ ...finalItemEffect, onAdvance: openFinalDice });
@@ -1235,8 +1260,8 @@ resolve(true);
       character || {
         hp: 20,
         maxHp: 20,
-        san: 30,
-        maxSan: 30,
+        san: 15,
+        maxSan: 15,
 
         stats: {
           STR: 10,

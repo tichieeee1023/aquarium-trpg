@@ -1,4 +1,7 @@
 import { useEffect, useRef } from 'react';
+import { ENDING_DEFINITIONS } from '../../data/endingDB.js';
+
+const ENDING_COUNT = Object.keys(ENDING_DEFINITIONS).length;
 
 const COLORS = [
   '#ffd85e',
@@ -196,14 +199,14 @@ export default function CompletionCelebration({
           <h2>THANK YOU FOR PLAYING</h2>
           <h3>아쿠아리움: 심해의 균열</h3>
           <p className="completion-copy">
-            7개의 결말과 마지막 기록까지 확인해 주셔서 감사합니다.
+            {ENDING_COUNT}개의 결말과 마지막 기록까지 확인해 주셔서 감사합니다.
             <br />당신은 깊은 밤의 균열을 지나, 무사히 돌아왔습니다.
           </p>
         </div>
 
         <div className="completion-score">
           <span>ALL ENDINGS</span>
-          <strong>7 / 7</strong>
+          <strong>{ENDING_COUNT} / {ENDING_COUNT}</strong>
         </div>
 
         <div className="completion-main">
@@ -215,7 +218,7 @@ export default function CompletionCelebration({
           <h3>《아쿠아리움: 심해의 균열》</h3>
 
           <p className="completion-copy">
-            일곱 개의 결말과 마지막 기록까지,
+            {ENDING_COUNT}개의 결말과 마지막 기록까지,
             <br />
             이 깊은 밤의 끝을 함께 확인해 주셔서 감사합니다.
           </p>

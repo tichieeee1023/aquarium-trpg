@@ -320,7 +320,7 @@ export const SCENARIOS = {
 },
   STAGE_5_DOME: {
     title: 'STAGE 5 : 00:28 — 수면 아래 채광 돔',
-    sub: '고개를 들자 머리 위로 채광 돔이 보였다. 손을 뻗으면 닿을 거리지만, 5센티미터 두께의 아크릴이 수압을 버티며 지상을 가두고 있다.\n\n돔 너머 가로등 불빛이 물결에 일그러졌다. 00:30 수장 프로토콜까지 2분. 저 빛에 닿으려면 천장을 깨야 한다.',
+    sub: '고개를 들자 머리 위로 채광 돔이 보였다. 손을 뻗으면 닿을 거리지만, 5센티미터 두께의 아크릴이 수압을 버티며 지상을 가두고 있다.\n\n돔 너머 가로등 불빛이 물결에 일그러졌다. 수조 방송은 00:30 비상 방류를 예고했다. 저 빛에 닿으려면 천장을 깨야 한다.',
     bg: '/assets/scenes/scene_stage5_dome.webp',
     breakBg: '/assets/scenes/scene_stage5_dome_cracking.webp', // 파쇄 균열 씬
     waterLevel: 95

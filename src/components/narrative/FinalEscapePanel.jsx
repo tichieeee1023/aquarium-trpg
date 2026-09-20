@@ -100,7 +100,7 @@ export default function FinalEscapePanel({
               <strong>{preparationItem?.name || (prepared && finalCheck.preparation === 'VORTEX_STOPPED' ? '펌프 정지 정보' : current.itemName)}</strong>
               <small>
                 {prepared
-                  ? `장비 확보 · DC ${current.baseDc} → ${current.preparedDc}`
+                  ? `준비 적용 · DC ${current.baseDc} → ${currentDc}`
                   : `미보유 · 기본 DC ${current.baseDc}`}
               </small>
             </div>

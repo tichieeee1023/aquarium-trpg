@@ -21,9 +21,20 @@ export function createStageIntroStory(stageKey) {
 }
 
 export function getStageTransitionStory(fromStage, targetStage) {
-  if (fromStage !== 'STAGE_3_FREEZER' || targetStage !== 'STAGE_4_PUMP') {
-    return null;
+  if (fromStage === 'STAGE_4_PUMP' && targetStage === 'STAGE_5_DOME') {
+    return {
+      kind: 'SCENE',
+      title: '00:27 — 점검 통로',
+      tag: '구역 이동',
+      body: `펌프실 끝의 점검 사다리를 붙잡고 올라갔다. 물살이 사다리 기둥을 때릴 때마다 철제 발판이 낮게 울렸다. 좁은 통로 끝, 머리 위에 걸린 점검 해치 틈으로 빗물 냄새와 희미한 가로등 빛이 스며들었다.\n\n해치를 밀어 올리자 바로 아래로 또 다른 침수 구역이 열렸다. 위쪽을 덮은 둥근 아크릴 너머에서 가로등 불빛이 흔들렸다.`,
+      image: {
+        src: SCENARIOS.STAGE_5_DOME.bg,
+        alt: '수면 아래에서 올려다본 채광 돔과 지상의 가로등'
+      }
+    };
   }
+
+  if (fromStage !== 'STAGE_3_FREEZER' || targetStage !== 'STAGE_4_PUMP') return null;
 
   return {
     kind: 'SCENE',

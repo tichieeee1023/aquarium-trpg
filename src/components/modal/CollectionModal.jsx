@@ -109,7 +109,7 @@ export default function CollectionModal({
       title={
         secret
           ? '최종 진상 파일'
-          : `엔딩 도감 · ${collected.length}/7`
+          : `엔딩 도감 · ${collected.length}/${Object.keys(ENDING_DEFINITIONS).length}`
       }
       onClose={onClose}
       className="collection-dialog"
@@ -230,7 +230,7 @@ export default function CollectionModal({
           >
             {complete
               ? '✦ 프로젝트 심해 침식 — 최종 진상 파일 열기'
-              : `최종 진상 파일 잠김 · ${collected.length}/7 수집`}
+              : `최종 진상 파일 잠김 · ${collected.length}/${Object.keys(ENDING_DEFINITIONS).length} 수집`}
           </button>
         </>
       )}

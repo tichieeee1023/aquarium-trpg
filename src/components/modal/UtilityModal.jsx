@@ -42,15 +42,15 @@ export default function UtilityModal({ kind, stage, settings, updateSettings, on
             <p>암전 시 화면 반전, 점멸, 주사위 회전과 움직이는 캔버스 효과를 끕니다. 주사위 결과와 게임 진행은 그대로 유지됩니다.</p>
             <label className="setting-checkbox"><input type="checkbox" checked={settings.skipDiceAnimation} onChange={(event) => updateSettings({ skipDiceAnimation: event.target.checked })} /><span>주사위 연출 생략</span></label>
             <p>다회차에서는 주사위가 구르는 시간을 건너뛰고 결과를 바로 표시합니다.</p>
-            <label className="setting-checkbox"><input type="checkbox" checked={settings.easyMode} onChange={(event) => updateSettings({ easyMode: event.target.checked })} /><span>이지 모드 · 생존 장비 표시</span></label>
-            <p>현재 위기에 도움이 될 수 있는 보유 장비에 작은 점등 표시를 붙입니다. 정답이나 사용 방법은 알려주지 않습니다.</p>
+            <label className="setting-checkbox"><input type="checkbox" checked={settings.easyMode} onChange={(event) => updateSettings({ easyMode: event.target.checked })} /><span>이지 모드 · 조사 힌트</span></label>
+            <p>현재 구역에서 유효한 보유 장비를 강조 표시합니다. 판정, 피해, 진행 경로와 엔딩 조건에는 영향을 주지 않습니다.</p>
             <p className="setting-note">설정은 이 브라우저에 자동 저장됩니다.</p>
           </> : kind === 'hint' ? <div className="stage-hint-content"><span className="stage-hint-icon" aria-hidden="true">💡</span><p>{STAGE_HINTS[stage] ?? '아직 보이지 않는 길에도, 지나온 흔적은 남아 있습니다.'}</p></div> : <div className="help-content">
             <h3>1. 캐릭터를 선택하세요</h3><p>캐릭터마다 능력치와 시작 도구가 다릅니다. 컨디션 주사위를 굴리면 탐사가 시작됩니다.</p>
             <h3>2. AP를 확인하고 조사하세요</h3><p>각 구역의 6곳 중 3곳을 조사할 수 있습니다. 조사가 끝나면 다음 구역으로 이동합니다.</p>
             <h3>3. D20 주사위로 판정합니다</h3><p>주사위는 특수 행동이나 장비 없이 위험을 강행할 때만 굴립니다. 20은 대성공, 1은 대실패입니다.</p>
             <h3>4. 도구와 상태를 살펴보세요</h3><p>획득한 도구는 소지품에 자동 추가됩니다. HP는 체력, SAN은 정신력입니다. 둘 중 하나가 0이면 생존에 실패합니다. 진정제는 소지품의 사용 버튼으로 회복할 수 있습니다.</p>
-            <h3>최종전과 엔딩 도감</h3><p>토치·빠루·산소마스크로 채광 돔을 돌파하세요. 획득한 장비는 가방에 모두 보관됩니다. 완료한 7종 엔딩은 도감에 저장됩니다.</p>
+            <h3>최종전과 엔딩 도감</h3><p>토치나 마스터 키카드, 빠루나 육각 렌치, 산소마스크 등으로 채광 돔을 돌파하세요. 획득한 장비는 가방에 모두 보관됩니다. 완료한 7종 엔딩은 도감에 저장됩니다.</p>
             <h3>5. 이야기를 읽고 다음으로 진행하세요</h3><p>텍스트 출력 중에는 &gt;다음이나 모달 바깥을 누르면 문장이 완성됩니다. 한 번 더 누르면 다음 행동으로 진행합니다. Esc도 사용할 수 있습니다.</p>
             <h3>작은 화면에서는</h3><p>장면 설명과 캐릭터·진행 기록은 접혀 있습니다. 각 제목을 눌러 펼칠 수 있습니다. 글씨가 작거나 이펙트가 불편하면 설정을 열어 조정하세요.</p>
           </div>}

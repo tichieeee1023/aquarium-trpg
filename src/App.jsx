@@ -20,7 +20,10 @@ import MobileInventoryDock from './components/sheet/MobileInventoryDock.jsx';
 import CreditsModal from './components/modal/CreditsModal.jsx';
 
 import { SCENARIOS } from './game/index.js';
+import { ENDING_DEFINITIONS } from './data/endingDB.js';
 import { getRelevantItemIds } from './utils/itemRelevance.js';
+
+const ENDING_COUNT = Object.keys(ENDING_DEFINITIONS).length;
 
 export default function App() {
   const sfx = useAudioSynth();
@@ -64,7 +67,7 @@ export default function App() {
     collected.length > 0;
 
   const collectionComplete =
-    collected.length === 7;
+    collected.length === ENDING_COUNT;
 
   const highlightedItemIds =
     settings.easyMode
@@ -372,6 +375,9 @@ export default function App() {
               }
               collectedCount={
                 collected.length
+              }
+              totalEndingCount={
+                ENDING_COUNT
               }
               collectionComplete={
                 collectionComplete
