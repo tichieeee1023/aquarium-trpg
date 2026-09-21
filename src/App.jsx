@@ -13,6 +13,7 @@ import DiceModal from './components/modal/DiceModal.jsx';
 import StoryDisplay from './components/narrative/StoryDisplay.jsx';
 import EndingModal from './components/modal/EndingModal.jsx';
 import IntroScreen from './components/narrative/IntroScreen.jsx';
+import StartNotice from './components/narrative/StartNotice.jsx';
 import OpeningSequence from './components/narrative/OpeningSequence.jsx';
 import UtilityModal from './components/modal/UtilityModal.jsx';
 import CollectionModal from './components/modal/CollectionModal.jsx';
@@ -39,6 +40,9 @@ export default function App() {
   );
 
   const [soundEnabled, setSoundEnabled] =
+    useState(true);
+
+  const [showStartNotice, setShowStartNotice] =
     useState(true);
 
   const [showIntro, setShowIntro] =
@@ -100,6 +104,7 @@ export default function App() {
   useEffect(() => {
     if (
       !import.meta.env.DEV ||
+      showStartNotice ||
       showOpening ||
       (!showIntro &&
         game.stage !== 'SURVEY') ||
@@ -149,6 +154,7 @@ export default function App() {
         handleDeveloperKey
       );
   }, [
+    showStartNotice,
     showIntro,
     showOpening,
     game.stage,
@@ -189,6 +195,7 @@ export default function App() {
 
     setHasActiveRun(false);
     setShowOpening(false);
+    setShowStartNotice(true);
     setShowIntro(true);
   };
 
@@ -197,12 +204,14 @@ export default function App() {
     setHasActiveRun(false);
     setUtility(null);
     setShowOpening(false);
+    setShowStartNotice(true);
     setShowIntro(true);
   };
 
   const returnHome = () => {
     setUtility(null);
     setShowOpening(false);
+    setShowStartNotice(true);
     setShowIntro(true);
   };
 
@@ -217,6 +226,7 @@ export default function App() {
 
     setHasActiveRun(false);
     setShowOpening(false);
+    setShowStartNotice(true);
     setShowIntro(true);
     setCelebrationActive(true);
 
@@ -260,7 +270,14 @@ export default function App() {
           INTRO
       ================================================= */}
 
-      {showIntro ? (
+      {showStartNotice ? (
+        <StartNotice
+          onEnter={() => {
+            sfx.playClick();
+            setShowStartNotice(false);
+          }}
+        />
+      ) : showIntro ? (
         <IntroScreen
           onStart={() => {
             sfx.playClick();

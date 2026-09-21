@@ -2237,3 +2237,50 @@ button:disabled { cursor: not-allowed; }
     opacity: 0 !important;
   }
 }
+
+
+/* Aquarium start briefing ? mirrors the Subway portfolio notice. */
+.start-notice { align-items: center; justify-content: center; padding: clamp(12px, 3vh, 30px) 16px; overflow-y: auto; }
+.start-notice .intro-image { filter: saturate(.55) brightness(.4); }
+.start-notice .intro-shade { background: linear-gradient(90deg, #020d1be8, #03213cb8 58%, #034568a8), linear-gradient(0deg, #020a14f0, #03213c88); }
+.start-notice-panel { position: relative; width: min(100%, 1040px); max-height: calc(100svh - 40px); overflow-y: auto; padding: clamp(18px, 3vw, 34px); border: 1px solid #467988; border-top-color: #82bac2; background: linear-gradient(145deg, #071922ef, #071117f5); box-shadow: 5px 5px 0 #020507, inset 0 0 0 1px #b2edf412; }
+.start-notice-heading { padding-bottom: 16px; border-bottom: 1px solid #42616a; }
+.start-notice-kicker { color: #82d1d5; font: 12px var(--story-font); letter-spacing: .14em; }
+.start-notice-heading h1 { margin-top: 5px; color: #8ddfe1; font: clamp(30px, 4vw, 48px)/1.2 var(--story-font); }
+.start-notice-heading > p { margin-top: 2px; color: #e1ece8; font-size: clamp(17px, 2vw, 22px); font-weight: 700; }
+.start-notice-columns { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(18px, 3vw, 40px); padding: 17px 0; }
+.start-notice-columns section { min-width: 0; }
+.start-notice-columns h2, .start-notice-warning h2 { margin-bottom: 9px; color: #83d9dc; font: 12px var(--story-font); letter-spacing: .12em; }
+.start-notice-play p, .start-notice-portfolio p { color: #d6e2df; font-size: 15px; line-height: 1.6; }
+.start-notice-play p + p, .start-notice-portfolio p + p { margin-top: 5px; }
+.start-notice-portfolio { padding-left: clamp(12px, 2vw, 24px); border-left: 1px solid #34525c; }
+.start-notice-portfolio h2 { color: #d5bd78; }
+.start-notice-portfolio .start-notice-details { margin-top: 9px; color: #afc2c1; font-size: 13px; }
+.start-notice-details strong { color: #eedb9b; }
+.start-notice-terms { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; border-block: 1px solid #34525c; background: #05131aa8; }
+.start-notice-terms > div { min-width: 0; padding: 9px 12px; }
+.start-notice-terms > div + div { border-left: 1px solid #34525c; }
+.start-notice-terms dt { color: #78e2e7; font: 14px var(--story-font); }
+.start-notice-terms dd { margin: 2px 0 0; color: #c1d2d1; font-size: 13px; line-height: 1.4; }
+.start-notice-warning { margin-top: 15px; padding: 11px 13px; border-left: 3px solid #d5bd78; background: #131c20bc; }
+.start-notice-warning h2 { margin-bottom: 7px; color: #e2d08e; }
+.start-notice-warning ul { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.start-notice-warning li { padding: 3px 8px; border: 1px solid #52646a; color: #d2ddda; font-size: 12px; line-height: 1.35; }
+.start-notice-footer { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-top: 16px; }
+.start-notice-footer > p { color: #9db3b5; font-size: 12px; }
+.start-notice-enter { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-width: 166px; min-height: 50px; padding: 10px 20px; border-color: #a4e1e1; background: #40888b; color: #061316; font: 16px var(--story-font); letter-spacing: .12em; }
+.start-notice-enter:hover:not(:disabled) { border-color: #d7ffff; background: #59a8a9; color: #041012; }
+@media (max-width: 700px) {
+  .start-notice { padding: 10px; }
+  .start-notice-panel { max-height: calc(100svh - 20px); padding: 18px 16px; }
+  .start-notice-columns { grid-template-columns: 1fr; gap: 13px; padding: 14px 0; }
+  .start-notice-play p, .start-notice-portfolio p { font-size: 14px; }
+  .start-notice-portfolio { padding: 12px 0 0; border-top: 1px solid #34525c; border-left: 0; }
+  .start-notice-terms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .start-notice-terms > div { padding: 8px 10px; }
+  .start-notice-terms > div:nth-child(3) { border-top: 1px solid #34525c; border-left: 0; }
+  .start-notice-terms > div:nth-child(4) { border-top: 1px solid #34525c; }
+  .start-notice-footer { align-items: stretch; flex-direction: column; gap: 10px; }
+  .start-notice-footer > p { font-size: 12px; }
+  .start-notice-enter { width: 100%; min-height: 52px; }
+}

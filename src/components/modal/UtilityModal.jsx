@@ -54,7 +54,7 @@ export default function UtilityModal({ kind, stage, settings, updateSettings, on
             <h3>5. 이야기를 읽고 다음으로 진행하세요</h3><p>텍스트 출력 중에는 &gt;다음이나 모달 바깥을 누르면 문장이 완성됩니다. 한 번 더 누르면 다음 행동으로 진행합니다. Esc도 사용할 수 있습니다.</p>
             <h3>작은 화면에서는</h3><p>장면 설명과 캐릭터·진행 기록은 접혀 있습니다. 각 제목을 눌러 펼칠 수 있습니다. 글씨가 작거나 이펙트가 불편하면 설정을 열어 조정하세요.</p>
           </div>}
-          {kind === 'help' && <button className="utility-credits" onClick={onCredits}>CREDITS</button>}
+          {(kind === 'help' || kind === 'settings') && <button className="utility-credits" onClick={onCredits}>CREDITS</button>}
           {kind === 'settings' && canReplay && <div className="utility-navigation-actions">
             {confirmReplay ? <div className="utility-replay-confirm" role="alert"><p>현재 회차의 진행 상황은 초기화됩니다. 수집한 엔딩 기록은 유지됩니다.</p><div><button className="utility-replay-cancel" onClick={() => setConfirmReplay(false)}>취소</button><button className="utility-replay-accept" onClick={onReplay}>처음부터 시작</button></div></div> : <button className="utility-replay" onClick={() => setConfirmReplay(true)}>처음부터 다시 플레이</button>}
             <button className="utility-home" onClick={onHome}>홈으로 가기</button>
